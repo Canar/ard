@@ -1,0 +1,2 @@
+OpenSSL: ./Configure --prefix=/usr --openssldir=/usr/lib/ssllibtorrent ./configure --enable-posix-fallocate
+wget http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz
