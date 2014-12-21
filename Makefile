@@ -1,11 +1,12 @@
 PREFIX=/mnt/ext/ard2/prefix
 SSLDIR=$(PREFIX)/lib/ssl
 
-.PHONY: zlib openssl curl cppunit
+.PHONY: zlib openssl curl cppunit ncurses
 
 rtorrent: libtorrent ncurses curl
 	cd rtorrent && \
 	export ACLOCAL_PATH=$(PREFIX)/share/aclocal && \
+	export PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig && \
 	./autogen.sh && \
 	./configure --prefix=$(PREFIX) && \
 	make install
@@ -13,7 +14,7 @@ rtorrent: libtorrent ncurses curl
 
 ncurses:
 	cd ncurses && \
-	./configure --with-termlib --with-ticlib --with-shared --disable-relink --with-widec --prefix=$(PREFIX) && \
+	./configure --with-termlib --with-ticlib --with-shared --disable-relink --with-widec --enable-pc-files --prefix=$(PREFIX) && \
 	make install
 
 cppunit:
@@ -31,9 +32,9 @@ curl:
 libtorrent: openssl zlib cppunit
 	cd libtorrent && \
 	export ACLOCAL_PATH=$(PREFIX)/share/aclocal && \
-	export CFLAGS="-fPIC" && \
-       	./autogen.sh && \
-	PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig ./configure --prefix=$(PREFIX) --with-posix-fallocate && \
+	export PKG_CONFIG_PATH=$(PREFIX)/lib/pkgconfig && \
+	./autogen.sh && \
+	./configure --prefix=$(PREFIX) --with-posix-fallocate && \
 	make install
 
 openssl:
