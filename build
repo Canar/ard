@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#packages needed: libtool pkg-config build-essential
 PREFIX=$( pwd )/prefix
 SSLDIR=$PREFIX/lib/ssl
 export ACLOCAL_PATH=$PREFIX/share/aclocal
