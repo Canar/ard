@@ -19,20 +19,30 @@ dep-build-gen(){
 	done
 }
 
-build-ncurses-shared(){ build-gen ncurses "--with-termlib --with-ticlib --with-shared --disable-relink --with-widec --enable-pc-files" ; }
+build-ncurses-shared(){ build-gen ncurses "--with-shared --without-normal --without-debug --with-termlib --with-ticlib --disable-relink --with-widec --enable-pc-files" ; }
 build-cppunit-shared(){ build-gen cppunit " " "./autogen.sh" ; }
-build-curl-shared(){ build-gen curl "--with-ssl=$SSLDIR" "./buildconf" ; }
-build-rtorrent-shared(){ build-gen rtorrent "--with-zlib=$PREFIX" "./autogen.sh" ; }
-build-libtorrent-shared(){ build-gen libtorrent "--with-posix-fallocate" "./autogen.sh" ; }
+build-curl-shared(){ build-gen curl "--disable-static --with-ssl=$SSLDIR --with-zlib" "./buildconf" ; }
+#build-rtorrent-shared(){ build-gen rtorrent "--with-zlib=$PREFIX" "./autogen.sh" ; }
+build-rtorrent-shared(){ 
+	cd rtorrent
+	export LDFLAGS="-L/hax/ard/prefix/lib -lncurses -ltinfo"
+	export CFLAGS="-I/hax/ard/prefix/include/ncurses -I/hax/ard/prefix/include"
+	export CPPFLAGS="$CFLAGS"
+	./autogen.sh
+	./configure --enable-ncurses --disable-static --prefix=$PREFIX
+	make install
+	cd ..
+}
+build-libtorrent-shared(){ build-gen libtorrent "--with-posix-fallocate --with-zlib=$PREFIX" "./autogen.sh" ; }
 build-zlib-shared(){ build-gen zlib ; }
 build-openssl-shared(){ 
 	cd openssl
 	export CFLAGS="-fPIC" 
-	./config shared -fPIC --prefix=$PREFIX --openssldir=$SSLDIR
+	./Configure shared zlib-dynamic -fPIC --prefix=$PREFIX --openssldir=$SSLDIR --with-zlib-include=$PREFIX/include --with-zlib-lib=$PREFIX/lib linux-x86_64
 	make install
 	cd ..
 }
-dep-build-libtorrent-shared(){ dep-build-gen openssl zlib cppunit curl ; }
+dep-build-libtorrent-shared(){ dep-build-gen zlib openssl cppunit curl libtorrent ; }
 dep-build-rtorrent-shared(){ 
 	dep-build-libtorrent-shared
 	dep-build-gen ncurses rtorrent
@@ -43,4 +53,4 @@ elif [[ -n "$1" ]] ; then
 	build-$1-$MODE
 else
 	dep-build-rtorrent-$MODE
-fi |& tee build.log
+fi
