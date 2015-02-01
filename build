@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+PREFIX=$( pwd )/prefix
+SSLDIR=$PREFIX/lib/ssl
+export ACLOCAL_PATH=$PREFIX/share/aclocal
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+MODE=shared
+set -e
+
+build-gen(){
+	cd $1
+	[ -z "$3" ] || "$3"
+	./configure $2 --prefix=$PREFIX
+	make install
+	cd ..
+}
+dep-build-gen(){
+	for dir in "$@" ; do
+		build-$dir-$MODE
+	done
+}
+
+build-ncurses-shared(){ build-gen ncurses "--with-termlib --with-ticlib --with-shared --disable-relink --with-widec --enable-pc-files" ; }
+build-cppunit-shared(){ build-gen cppunit " " "./autogen.sh" ; }
+build-curl-shared(){ build-gen curl "--with-ssl=$SSLDIR" "./buildconf" ; }
+build-rtorrent-shared(){ build-gen rtorrent "--with-zlib=$PREFIX" "./autogen.sh" ; }
+build-libtorrent-shared(){ build-gen libtorrent "--with-posix-fallocate" "./autogen.sh" ; }
+build-zlib-shared(){ build-gen zlib ; }
+build-openssl-shared(){ 
+	cd openssl
+	export CFLAGS="-fPIC" 
+	./config shared -fPIC --prefix=$PREFIX --openssldir=$SSLDIR
+	make install
+	cd ..
+}
+dep-build-libtorrent-shared(){ dep-build-gen openssl zlib cppunit ; }
+dep-build-rtorrent-shared(){ 
+	dep-build-libtorrent-shared
+	dep-build-gen ncurses curl rtorrent
+}
+if [[ -z "$@" ]] ; then
+	dep-build-rtorrent-$MODE
+else
+	if [[ -n "$2" ]] ; then
+		$2-build-$1-$MODE
+	else
+		build-$1-$MODE
+	fi
+fi
