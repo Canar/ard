@@ -37,12 +37,10 @@ dep-build-rtorrent-shared(){
 	dep-build-libtorrent-shared
 	dep-build-gen ncurses rtorrent
 }
-if [[ -z "$@" ]] ; then
-	dep-build-rtorrent-$MODE
+if [[ -n "$2" ]] ; then
+	$2-build-$1-$MODE
+elif [[ -n "$1" ]] ; then
+	build-$1-$MODE
 else
-	if [[ -n "$2" ]] ; then
-		$2-build-$1-$MODE
-	else
-		build-$1-$MODE
-	fi
-fi
+	dep-build-rtorrent-$MODE
+fi |& tee build.log
