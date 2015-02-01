@@ -32,10 +32,10 @@ build-openssl-shared(){
 	make install
 	cd ..
 }
-dep-build-libtorrent-shared(){ dep-build-gen openssl zlib cppunit ; }
+dep-build-libtorrent-shared(){ dep-build-gen openssl zlib cppunit curl ; }
 dep-build-rtorrent-shared(){ 
 	dep-build-libtorrent-shared
-	dep-build-gen ncurses curl rtorrent
+	dep-build-gen ncurses rtorrent
 }
 if [[ -z "$@" ]] ; then
 	dep-build-rtorrent-$MODE
