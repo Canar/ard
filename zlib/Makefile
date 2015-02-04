@@ -45,7 +45,7 @@ TAR=tar
 SHELL=/bin/sh
 EXE=
 
-prefix =/mnt/ext/ard2/prefix
+prefix =/hax/ard/prefix/
 exec_prefix =${prefix}
 libdir =${exec_prefix}/lib
 sharedlibdir =${libdir}

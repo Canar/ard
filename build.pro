@@ -37,6 +37,7 @@ preconf(curl,'./buildconf').
 preconf(cppunit,'./autogen.sh').
 preconf(libtorrent,'./autogen.sh').
 preconf(rtorrent,'./autogen.sh').
+preconf(git,'make configure').
 
 optconfflag(_,[prefix],F):-dirflag(prefix,'--prefix=',F).
 
@@ -67,6 +68,8 @@ optconfflag(ncurses,[static],F):-str(acst,F).
 optconfflag(rtorrent,[shared],F):-str(acsh,F).
 optconfflag(rtorrent,[static],F):-str(acst,F).
 
+optconfflag(git,[],'--without-perl --without-python --without-tcltk --without-gettext').
+
 optenv(openssl,[shared,zlib],[['CFLAGS','-fPIC']]).
 optenv(rtorrent,[],[
 	['CFLAGS',A],
@@ -80,6 +83,9 @@ optenv(rtorrent,[],[
 
 configscript(openssl,'./Configure').
 configscript(_,'./configure').
+
+repo(expat,cvs,'cvs -z3 -d:pserver:anonymous@expat.cvs.sourceforge.net:/cvsroot/expat co modulename').
+repo(openssh,git,'git://anongit.mindrot.org/openssh.git').
 
 % business logic %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
