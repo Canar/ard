@@ -1,0 +1,6 @@
+[submodule "git"]
+	path = git
+	url = git@github.com:git/git.git
+[submodule "openssh"]
+	path = openssh
+	url = git://anongit.mindrot.org/openssh.git
