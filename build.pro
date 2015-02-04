@@ -69,6 +69,8 @@ optconfflag(rtorrent,[shared],F):-str(acsh,F).
 optconfflag(rtorrent,[static],F):-str(acst,F).
 
 optconfflag(git,[],'--without-perl --without-python --without-tcltk --without-gettext').
+optconfflag(git,[shared],F):-str(acsh,F).
+optconfflag(git,[static],F):-str(acst,F).
 
 optenv(openssl,[shared,zlib],[['CFLAGS','-fPIC']]).
 optenv(rtorrent,[],[
