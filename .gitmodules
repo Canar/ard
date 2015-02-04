@@ -4,3 +4,9 @@
 [submodule "openssh"]
 	path = openssh
 	url = git://anongit.mindrot.org/openssh.git
+[submodule "expat"]
+	path = expat
+	url = git://git.code.sf.net/p/expat/code_git
+[submodule "expat-git"]
+	path = expat-git
+	url = git://git.code.sf.net/p/expat/code_git
