@@ -50,6 +50,7 @@ optconfflag(curl,[openssl],F):-dirflag(openssl,'--with-ssl=',F).
 optconfflag(libtorrent,[],F):-dirflag(prefix,'--with-posix-fallocate --with-zlib=',F).
 optconfflag(ncurses,[],'--without-debug --with-widec --enable-pc-files --with-pkg-config').
 optconfflag(git,[],'--without-perl --without-python --without-tcltk --without-gettext').
+optconfflag(ruby,[],'--disable-nls').
 
 optconfflag(Pkg,Opt,F):-
 	optconfflagtmpl(_,Opt,Pkgs,F),!,
@@ -106,7 +107,9 @@ configure(Pkg,Opts):-
 	runstage(Cmd,Pkg,'2-configure','Configuring').
 
 buildplan(Pkg,Plan):-
-	expandplan([Pkg],[Pkg],Plan).
+	Pkg=[_|_]
+	->	expandplan(Pkg,[Pkg],Plan).
+	;	expandplan([Pkg],[Pkg],Plan).
 
 memberr(A,B):-member(B,A).
 expandplan(OldPlan,[PkgF|Pkgs],NewPlan):-
@@ -220,17 +223,10 @@ wl(L):-w(L),nl.
 :- dynamic path/2.
 path(P,D):-pathagg(P,Pp,Dc),path(Pp,Dp),cc(Dp,Dc,D).
 
-go:-
-	setup,
-	build(rtorrent).
-
 eval :-
-	go.
-%	current_prolog_flag(argv, Argv),
-%	concat_atom(Argv, ' ', SingleArg),
-%	term_to_atom(Term, SingleArg),
-%	Val is Term,
-%	format('~w~n', [Val]).
+	setup,
+	current_prolog_flag(argv, Argv),
+	build(Argv).
 
 main :-
 	catch(eval, E, (print_message(error, E), fail)),
@@ -238,4 +234,4 @@ main :-
 main :-
 	halt(1).
 
-%:- initialization main.
+:- initialization main.

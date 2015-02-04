@@ -13,3 +13,6 @@
 [submodule "bash"]
 	path = bash
 	url = git://git.savannah.gnu.org/bash.git
+[submodule "ruby"]
+	path = ruby
+	url = git@github.com:ruby/ruby.git
