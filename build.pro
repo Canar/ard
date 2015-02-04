@@ -9,17 +9,6 @@ pathagg(openssl,lib,'ssl/').
 pathagg(aclocal,prefix,'share/aclocal/').
 pathagg(pkgconfig,lib,'pkgconfig/').
 
-link(shared).
-
-pkg(curl).
-pkg(zlib).
-pkg(cppunit).
-pkg(ncurses).
-pkg(libtorrent).
-
-depopt(curl,zlib).
-depopt(curl,openssl).
-
 % build configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 globalopts([shared,amd64,prefix]).
@@ -30,7 +19,7 @@ dep(curl(zlib,openssl),[zlib,openssl(zlib)]).
 dep(libtorrent,[zlib,openssl(zlib),curl(zlib,openssl),cppunit]).
 dep(rtorrent,[ncurses,libtorrent(zlib)]).
 dep(openssl,[zlib]).
-dep(git,[expat,openssl,openssh,curl,zlib]).
+dep(git,[expat,openssl(zlib),openssh,curl(zlib,openssl),zlib]).
 
 preconf(curl,'./buildconf').
 preconf(cppunit,'./autogen.sh').
@@ -38,6 +27,7 @@ preconf(expat,'./buildconf.sh').
 preconf(git,'make configure').
 preconf(libtorrent,'./autogen.sh').
 preconf(rtorrent,'./autogen.sh').
+preconf(openssh,'autoreconf').
 
 optconfflag(_,[prefix],F):-dirflag(prefix,'--prefix=',F).
 
