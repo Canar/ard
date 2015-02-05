@@ -2,10 +2,6 @@
 
 % miscellaneous nonsense %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-str(A,B):-str(A,B,_).
-str(acsh,'--disable-static --enable-shared','standard autoconf shared configure flags').
-str(acst,'--enable-static --disable-shared','standard autoconf static configure flags').
-
 pathagg(prefix,build,'prefix/').
 pathagg(include,prefix,'include/').
 pathagg(lib,prefix,'lib/').
@@ -13,31 +9,25 @@ pathagg(openssl,lib,'ssl/').
 pathagg(aclocal,prefix,'share/aclocal/').
 pathagg(pkgconfig,lib,'pkgconfig/').
 
-link(shared).
-
-pkg(curl).
-pkg(zlib).
-pkg(cppunit).
-pkg(ncurses).
-pkg(libtorrent).
-
-depopt(curl,zlib).
-depopt(curl,openssl).
-
 % build configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 globalopts([shared,amd64,prefix]).
+outputmode(quiet). % quiet or normal
+%outputmode(normal).
 
 dep(curl(zlib,openssl),[zlib,openssl(zlib)]).
 dep(libtorrent,[zlib,openssl(zlib),curl(zlib,openssl),cppunit]).
 dep(rtorrent,[ncurses,libtorrent(zlib)]).
 dep(openssl,[zlib]).
+dep(git,[expat,openssl(zlib),openssh,curl(zlib,openssl),zlib]).
 
 preconf(curl,'./buildconf').
 preconf(cppunit,'./autogen.sh').
+preconf(expat,'./buildconf.sh').
+preconf(git,'make configure').
 preconf(libtorrent,'./autogen.sh').
 preconf(rtorrent,'./autogen.sh').
-preconf(git,'make configure').
+preconf(openssh,'autoreconf').
 
 optconfflag(_,[prefix],F):-dirflag(prefix,'--prefix=',F).
 
@@ -55,22 +45,22 @@ optconfflag(openssl,[zlib],F):-
 	cs([A,B],F).
 
 optconfflag(curl,[zlib],'--with-zlib').
-optconfflag(curl,[shared],F):-str(acsh,F).
-optconfflag(curl,[static],F):-str(acst,F).
 optconfflag(curl,[openssl],F):-dirflag(openssl,'--with-ssl=',F).
 
 optconfflag(libtorrent,[],F):-dirflag(prefix,'--with-posix-fallocate --with-zlib=',F).
-
 optconfflag(ncurses,[],'--without-debug --with-widec --enable-pc-files --with-pkg-config').
-optconfflag(ncurses,[shared],F):-str(acsh,F).
-optconfflag(ncurses,[static],F):-str(acst,F).
-
-optconfflag(rtorrent,[shared],F):-str(acsh,F).
-optconfflag(rtorrent,[static],F):-str(acst,F).
-
 optconfflag(git,[],'--without-perl --without-python --without-tcltk --without-gettext').
-optconfflag(git,[shared],F):-str(acsh,F).
-optconfflag(git,[static],F):-str(acst,F).
+optconfflag(ruby,[],'--disable-nls').
+
+optconfflag(Pkg,Opt,F):-
+	optconfflagtmpl(_,Opt,Pkgs,F),!,
+	member(Pkg,Pkgs).
+
+optconfflagtmpl(autoconflink,[shared],
+	[git,rtorrent,expat,ncurses,curl],
+	'--disable-static --enable-shared').
+optconfflagtmpl(autoconflink,[static],Pkg,'--enable-static --disable-shared'):-
+	optconfflagtmpl(autoconflink,[shared],Pkg,_).
 
 optenv(_,[,],[['CFLAGS',F],['CPPFLAGS',F]]):-dirflag(include,'-I',F).
 optenv(_,[,],[['LDFLAGS',F]]):-dirflag(lib,'-L',F).
@@ -93,19 +83,6 @@ repo(openssh,git,'git://anongit.mindrot.org/openssh.git').
 
 % business logic %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-setenvl([K,V]):-setenv(K,V).
-unsetenvl([K,_]):-unsetenv(K).
-
-setupenv(Pkg):-
-	ignore(
-	(	optenvs(Pkg,Env)
-	,	maplist(setenvl,Env))).
-
-unsetupenv(Pkg)
-:-	ignore(
-	(	optenvs(Pkg,Env)
-	,	maplist(unsetenvl,Env))).
-
 dirflag(Dir,Pre,Flag):-path(Dir,D),cc(Pre,D,Flag).
 
 getsubsets(Pred,Id,In,Out)
@@ -122,19 +99,16 @@ optenvs(Pkg,Opt,Fla):-getsubsets(optenv,Pkg,Opt,Fla).
 preconfigure(Pkg):-
 	ignore((
 		preconf(Pkg,Pc),
-		cz(['build-preconfigure-',Pkg,'.log'],Fn),
-		hideout(Pc,'Preconfiguring',Fn)
+		runstage(Pc,Pkg,'1-preconfigure','Preconfiguring')
 	)).
 
 configure(Pkg,Opts):-
 	optconfflags(Pkg,Opts,Flags),
 	configscript(Pkg,Scr),
 	cs([Scr|Flags],Cmd),
-	cz(['build-configure-',Pkg,'.log'],Fn),
-	hideout(Cmd,'Configuring',Fn).
+	runstage(Cmd,Pkg,'2-configure','Configuring').
 
-buildplan(Pkg,Plan):-
-	expandplan([Pkg],[Pkg],Plan).
+buildplan(Pkg,Plan):-expandplan(Pkg,Pkg,Plan).
 
 memberr(A,B):-member(B,A).
 expandplan(OldPlan,[PkgF|Pkgs],NewPlan):-
@@ -150,85 +124,108 @@ expandplan(OldPlan,[PkgF|Pkgs],NewPlan):-
 expandplan(OldPlan,[_|Pkgs],NewPlan):-
 	expandplan(OldPlan,Pkgs,NewPlan).
 expandplan(Plan,[],Plan).
-
-hideout(Cmd,Message,LogFile):-
-	cs([Cmd,'2>&1'],Co),
-	process_create(path(sh),['-c',Co],[stdout(pipe(Out)),process(Pid)]),
-	write('# '),write(Cmd),nl,
-	cz(['../',LogFile],File),
-	open(File,write,Log,[]),
-	write(Message),
-	hideoutput(Out,Log),
-	close(Log),
-	process_wait(Pid,Status),
-	( Status == exit(0) ; throw(fuck) ).
-hideoutput(Out,Log):-
-	read_line_to_codes(Out,Codes),
-	\+ Codes == end_of_file,
-	write('.'),
-	flush_output,
-	atom_codes(Atom,Codes),
-	write(Log,Atom),
-	nl(Log),
-	hideoutput(Out,Log).
-hideoutput(_,_):-nl,!.
-
-make(Pkg):-
-	cz(['build-make-',Pkg,'.log'],Fn),
-	hideout('make','Compiling',Fn).
-
-makeinst(Pkg):-
-	cz(['build-install-',Pkg,'.log'],Fn),
-	hideout('make install','Installing',Fn).
+make(Pkg):-runstage('make',Pkg,'3-make','Compiling').
+makeinst(Pkg):-runstage('make install',Pkg,'4-install','Installing').
 
 build(Pkg):-
-	buildplan(Pkg,Plan),
+	buildplan(Pkg,Plan),!,
 	maplist(buildpkg,Plan).
 
-buildpkg(PkgF):-
-	PkgF=..[Pkg|Opts],	
-	working_directory(Old,Pkg),
-	write('Building '),write(Pkg),nl,
-	setupenv(PkgF),
+compile(Pkg,Opts):-
+	wl(['***** Building ',Pkg]),
+	setupenv(Pkg,Opts),
 	preconfigure(Pkg),
 	globalopts(Global),
 	append([Global,Opts],Conf),
 	configure(Pkg,Conf),
 	make(Pkg),
 	makeinst(Pkg),
-	unsetupenv(Pkg),
-	working_directory(_,Old).
+	unsetupenv(Pkg).
+
+buildpkg(PkgF):-
+	PkgF=..[Pkg|Opts],	
+	withinsubdir(Pkg,compile(Pkg,Opts)).
+
+setup:-
+	working_directory(Dir,Dir),
+	asserta(path(build,Dir)),
+	%	asserta(outputmode(quiet)),
+	path(aclocal,Dac),
+	setenv('ACLOCAL_PATH',Dac),
+	path(pkgconfig,Dpc),
+	setenv('PKG_CONFIG_PATH',Dpc).
+
+setenvl([K,V]):-setenv(K,V).
+unsetenvl([K,_]):-unsetenv(K).
+
+setupenv(Pkg,Opts):-PkgF=..[Pkg|Opts],setupenv(PkgF).
+procenv(Pkg,Pred):-
+	ignore(
+	(	optenvs(Pkg,Env)
+	,	maplist(Pred,Env)
+)).
+setupenv(Pkg):-procenv(Pkg,setenvl).
+unsetupenv(Pkg):-procenv(Pkg,unsetenvl).
+
+runstage(Cmd,Pkg,Stage,Desc):-
+	outputmode(Mode),
+	working_directory(Dir,Dir),
+	wl(['  ***',Dir,'$ ',Cmd]),
+	cz(['../build-',Pkg,'-',Stage,'.log'],File),
+	cs([Cmd,'2>&1'],Co),
+	process_create(path(sh),['-c',Co],[stdout(pipe(Out)),process(Pid)]),
+	open(File,write,Log,[]),
+	handleopen(Mode,File,Pkg,Desc),
+	hideoutput(Out,Log,Mode),
+	process_wait(Pid,Status),
+	( Status == exit(0) ; throw(fuck) ).
+	
+hideoutput(Out,Log,Mode):-
+	read_line_to_codes(Out,Codes),
+	\+ Codes == end_of_file,
+	atom_codes(Atom,Codes),
+	handleline(Mode,Atom),
+	write(Log,Atom),
+	nl(Log),
+	hideoutput(Out,Log,Mode).
+hideoutput(Out,Log,_):-
+	read_line_to_codes(Out,end_of_file),
+	close(Log),
+	nl,!.
+
+handleline(quiet,_):-write('.'),flush_output.
+handleline(normal,Line):-wl(['    * ',Line]).
+
+handleopen(quiet,File,Pkg,Description):-w(['  *** [',File,'] ',Description,' ',Pkg]).
+handleopen(normal,_,Pkg,Description):-wl(['  *** ',Description,' ',Pkg,'...']).
 
 
 % miscellaneous helpers %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+withindir(Dir,Goal):-
+	working_directory(Old,Dir),
+	call(Goal),
+	working_directory(_,Old).
+withinsubdir(Dir,Goal):-
+	working_directory(Old,Old),
+	cz([Old,Dir,'/'],Path),
+	withindir(Path,Goal).
 
 c(L,S,A):-atomic_list_concat(L,S,A).
 cs(L,A):-c(L,' ',A).
 cc(Sa,Sb,S):-c([Sa,Sb],'',S).
 cz(L,A):-c(L,'',A).
 
+w(L):-L=[_|_],maplist(write,L).
+wl(L):-w(L),nl.
+
 :- dynamic path/2.
 path(P,D):-pathagg(P,Pp,Dc),path(Pp,Dp),cc(Dp,Dc,D).
 
-setup:-
-	working_directory(Dir,Dir),
-	asserta(path(build,Dir)),
-	path(aclocal,Dac),
-	setenv('ACLOCAL_PATH',Dac),
-	path(pkgconfig,Dpc),
-	setenv('PKG_CONFIG_PATH',Dpc).
-
-go:-
-	setup,
-	build(rtorrent).
-
 eval :-
-	go.
-%	current_prolog_flag(argv, Argv),
-%	concat_atom(Argv, ' ', SingleArg),
-%	term_to_atom(Term, SingleArg),
-%	Val is Term,
-%	format('~w~n', [Val]).
+	setup,
+	current_prolog_flag(argv, Argv),
+	build(Argv).
 
 main :-
 	catch(eval, E, (print_message(error, E), fail)),
@@ -236,4 +233,4 @@ main :-
 main :-
 	halt(1).
 
-%:- initialization main.
+:- initialization main.

@@ -16,6 +16,8 @@ if test "$1" = "2" -a "$2" -lt "58" || test "$1" -lt "2"; then
   exit 1
 fi
 
+#hackfix
+libtoolize --install --copy
 echo "Creating configure ..."
 ${AUTOCONF:-autoreconf} -fvi
 
