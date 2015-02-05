@@ -62,8 +62,8 @@ optconfflagtmpl(autoconflink,[shared],
 optconfflagtmpl(autoconflink,[static],Pkg,'--enable-static --disable-shared'):-
 	optconfflagtmpl(autoconflink,[shared],Pkg,_).
 
-optenv(_,[,],[['CFLAGS',F],['CPPFLAGS',F]]):-dirflag(include,'-I',F).
-optenv(_,[,],[['LDFLAGS',F]]):-dirflag(lib,'-L',F).
+optenv(_,[],[['CFLAGS',F],['CPPFLAGS',F]]):-dirflag(include,'-I',F).
+optenv(_,[],[['LDFLAGS',F]]):-dirflag(lib,'-L',F).
 optenv(openssl,[shared,zlib],[['CFLAGS','-fPIC']]).
 optenv(rtorrent,[],[
 	['CFLAGS',A],
