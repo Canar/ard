@@ -72,6 +72,8 @@ optconfflag(git,[],'--without-perl --without-python --without-tcltk --without-ge
 optconfflag(git,[shared],F):-str(acsh,F).
 optconfflag(git,[static],F):-str(acst,F).
 
+optenv(_,[,],[['CFLAGS',F],['CPPFLAGS',F]]):-dirflag(include,'-I',F).
+optenv(_,[,],[['LDFLAGS',F]]):-dirflag(lib,'-L',F).
 optenv(openssl,[shared,zlib],[['CFLAGS','-fPIC']]).
 optenv(rtorrent,[],[
 	['CFLAGS',A],
