@@ -12,8 +12,8 @@ pathagg(pkgconfig,lib,'pkgconfig/').
 % build configuration %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 globalopts([shared,amd64,prefix]).
-%outputmode(quiet). % quiet or normal
-outputmode(normal).
+outputmode(quiet). % quiet or normal
+%outputmode(normal).
 
 dep(curl(zlib,openssl),[zlib,openssl(zlib)]).
 dep(libtorrent,[zlib,openssl(zlib),curl(zlib,openssl),cppunit]).
@@ -106,10 +106,7 @@ configure(Pkg,Opts):-
 	cs([Scr|Flags],Cmd),
 	runstage(Cmd,Pkg,'2-configure','Configuring').
 
-buildplan(Pkg,Plan):-
-	Pkg=[_|_]
-	->	expandplan(Pkg,[Pkg],Plan).
-	;	expandplan([Pkg],[Pkg],Plan).
+buildplan(Pkg,Plan):-expandplan(Pkg,Pkg,Plan).
 
 memberr(A,B):-member(B,A).
 expandplan(OldPlan,[PkgF|Pkgs],NewPlan):-
