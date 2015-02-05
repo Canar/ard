@@ -132,6 +132,7 @@ build(Pkg):-
 compile(Pkg,Opts):-
 	wl(['***** Building ',Pkg]),
 	setupenv(Pkg,Opts),
+	runstage('env',Pkg,'0-env','Checking environment'),
 	preconfigure(Pkg),
 	globalopts(Global),
 	append([Global,Opts],Conf),
@@ -153,7 +154,9 @@ setup:-
 	path(pkgconfig,Dpc),
 	setenv('PKG_CONFIG_PATH',Dpc).
 
+setenvli(L):-maplist(setenvl,L).
 setenvl([K,V]):-setenv(K,V).
+unsetenvli(L):-maplist(unsetenvl,L).
 unsetenvl([K,_]):-unsetenv(K).
 
 setupenv(Pkg,Opts):-PkgF=..[Pkg|Opts],setupenv(PkgF).
@@ -162,8 +165,8 @@ procenv(Pkg,Pred):-
 	(	optenvs(Pkg,Env)
 	,	maplist(Pred,Env)
 )).
-setupenv(Pkg):-procenv(Pkg,setenvl).
-unsetupenv(Pkg):-procenv(Pkg,unsetenvl).
+setupenv(Pkg):-procenv(Pkg,setenvli).
+unsetupenv(Pkg):-procenv(Pkg,unsetenvli).
 
 runstage(Cmd,Pkg,Stage,Desc):-
 	outputmode(Mode),
@@ -224,6 +227,8 @@ eval :-
 	setup,
 	current_prolog_flag(argv, Argv),
 	build(Argv).
+%	Argv=[Pkg],
+%	buildpkg(Pkg).
 
 main :-
 	catch(eval, E, (print_message(error, E), fail)),
