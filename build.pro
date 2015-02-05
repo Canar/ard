@@ -44,6 +44,8 @@ optconfflag(openssl,[zlib],F):-
 	dirflag(lib,'--with-zlib-lib=',B),
 	cs([A,B],F).
 
+optconfflag(openssh,[],F):-dirflag(openssl,'--without-hardening --with-ssl-dir=',F).
+
 optconfflag(curl,[zlib],'--with-zlib').
 optconfflag(curl,[openssl],F):-dirflag(openssl,'--with-ssl=',F).
 
@@ -63,7 +65,7 @@ optconfflagtmpl(autoconflink,[static],Pkg,'--enable-static --disable-shared'):-
 	optconfflagtmpl(autoconflink,[shared],Pkg,_).
 
 optenv(_,[],[['CFLAGS',F],['CPPFLAGS',F]]):-dirflag(include,'-I',F).
-optenv(_,[],[['LDFLAGS',F]]):-dirflag(lib,'-L',F).
+optenv(_,[],[['LIBS','-ldl'],['LDFLAGS',F],['LD_LIBRARY_PATH',F]]):-dirflag(lib,'-L',F).
 optenv(openssl,[shared,zlib],[['CFLAGS','-fPIC']]).
 optenv(rtorrent,[],[
 	['CFLAGS',A],
@@ -228,9 +230,9 @@ path(P,D):-pathagg(P,Pp,Dc),path(Pp,Dp),cc(Dp,Dc,D).
 eval :-
 	setup,
 	current_prolog_flag(argv, Argv),
-	build(Argv).
-%	Argv=[Pkg],
-%	buildpkg(Pkg).
+%	build(Argv).
+	Argv=[Pkg],
+	buildpkg(Pkg).
 
 main :-
 	catch(eval, E, (print_message(error, E), fail)),
