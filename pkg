@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+#packages needed: libtool pkg-config build-essential
+PREFIX=$( pwd )/prefix
+SSLDIR=$PREFIX/lib/ssl
+export ACLOCAL_PATH=$PREFIX/share/aclocal
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+MODE=static
+unset LANG
+set -e
+
+compile-gen(){
+	if [[ -n "$2" ]] ; then
+		 "$2"
+	fi
+	./configure $1 --prefix=$PREFIX
+	make install
+}
+build-gen(){
+	cd "$1"
+	"${@:2}"
+	cd ..
+}
+build-gen-d(){ build-gen "$1" compile-gen "${@:2}" ; }
+dep-build-gen(){
+	for dir in "$@" ; do
+		build-$dir-$MODE
+	done
+}
+compile-rtorrent-gen(){
+	export LDFLAGS="-L/hax/ard/prefix/lib -lncurses"
+	export CFLAGS="-I/hax/ard/prefix/include/ncurses -I/hax/ard/prefix/include"
+	export CPPFLAGS="$CFLAGS"
+	export LIBS=-ldl
+	./autogen.sh
+	./configure "$@" --prefix=$PREFIX
+	make install
+}
+compile-openssl-gen(){
+	export CFLAGS="-fPIC" 
+	./Configure "$@" -fPIC -DOPENSSL_PIC --prefix=$PREFIX --openssldir=$SSLDIR --with-zlib-include=$PREFIX/include --with-zlib-lib=$PREFIX/lib linux-x86_64
+	make install
+}
+ATSH="--disable-static --enable-shared"
+ATST="--enable-static --disable-shared"
+build-openssl-shared(){ build-gen openssl compile-openssl-gen shared zlib-dynamic ; }
+build-openssl-static(){ build-gen openssl compile-openssl-gen no-shared zlib ; }
+build-rtorrent-shared(){ build-gen rtorrent compile-rtorrent-gen $ATSH ; }
+build-rtorrent-static(){ build-gen rtorrent compile-rtorrent-gen $ATST ; }
+build-zlib-shared(){ build-gen-d zlib ; }
+build-zlib-static(){ build-gen-d zlib --static ; }
+build-libtorrent-shared(){ build-gen-d libtorrent "$ATSH --with-posix-fallocate --with-zlib=$PREFIX" "./autogen.sh" ; }
+build-libtorrent-static(){ build-gen-d libtorrent "$ATST --with-posix-fallocate --with-zlib=$PREFIX" "./autogen.sh" ; }
+build-ncurses-shared(){ build-gen-d ncurses "--with-shared --without-normal --without-debug --with-widec --enable-pc-files --with-pkg-config" ; }
+build-ncurses-static(){ build-gen-d ncurses "--without-shared --with-normal --without-debug --with-widec --enable-pc-files --with-pkg-config" ; }
+build-cppunit-shared(){ build-gen-d cppunit "$ATSH" "./autogen.sh" ; }
+build-cppunit-static(){ build-gen-d cppunit "$ATST" "./autogen.sh" ; }
+build-curl-shared(){ build-gen-d curl "$ATSH --with-ssl=$SSLDIR --with-zlib" "./buildconf" ; }
+build-curl-static(){ build-gen-d curl "$ATST --with-ssl=$SSLDIR --with-zlib" "./buildconf" ; }
+
+# dep notes. each library implies its dependencies
+# openssl: zlib
+# curl: openssl
+# libtorrent: curl cppunit
+# rtorrent: libtorrent ncurses
+build-world(){ 
+	for p in zlib openssl curl cppunit libtorrent ncurses rtorrent
+	do
+		build-package $p
+	done
+}
+
+setpkgs(){
+	for p in "${@:3}" ; do
+		pkg[$p-$1]="$2"
+	done
+}
+
+declare -A pkg
+pkg[zlib-static]=--static
+pkg[openssl-conf]="-fPIC -DOPENSSL_PIC --openssldir=$SSLDIR" 
+pkg[openssl-configure]=./Configure
+pkg[openssl-dir]="$PREFIX/lib/openssl" 
+pkg[openssl-shared]="shared zlib-dynamic"
+pkg[openssl-static]="no-shared zlib"
+pkg[openssl-cflags]=-fPIC
+pkg[curl-conf]="--with-zlib --with-ssl=${pkg[openssl-dir]}"
+pkg[curl-preconf]=./buildconf
+pkg[libtorrent-conf]="--with-posix-fallocate --with-zlib=$PREFIX"
+pkg[ncurses-conf]="--without-debug --with-widec --enable-pc-files --with-pkg-config"
+pkg[ncurses-shared]="--with-shared --without-normal"
+pkg[ncurses-static]="--with-normal --without-shared"
+setpkgs shared "--enable-shared --disable-static" curl libtorrent rtorrent
+setpkgs static "--enable-static --disable-shared" curl libtorrent rtorrent
+setpkgs preconf ./autogen.sh cppunit libtorrent
+
+build-package(){
+	unset CONFFLAGS CFLAGS CPPFLAGS LDFLAGS LIBS
+	PRECONF="${pkg[$1-preconf]}"
+	if [[ -n ${pkg[$1-configure]} ]] ; then CONFIGURE=${pkg[$1-configure]} ; else CONFIGURE=./configure ; fi
+	LINK=shared #static shared
+	INCLUDE="-I$PREFIX/include"
+	LIB="-L$PREFIX/lib"
+	CONFFLAGS="${pkg[$1-conf]} ${pkg[$1-$LINK]}"
+	CFLAGS="${pkg[$1-cflags]} ${pkg[$1-$LINK-cflags]} $INCLUDE"
+	CPPFLAGS="${pkg[$1-cppflags]} ${pkg[$1-$LINK-cppflags]} $INCLUDE"
+	LDFLAGS="${pkg[$1-ldflags]} ${pkg[$1-$LINK-ldflags]} $LIB"
+	LIBS="${pkg[$1-libs]} ${pkg[$1-$LINK-libs]}"
+	
+
+	case $1 in
+		something) echo sup ;; 
+	esac
+	cd "$1"
+	if [[ -n $PRECONF ]] ; then "$PRECONF" ; fi
+	$CONFIGURE $CONFFLAGS --prefix=$PREFIX
+	make
+	make install
+	cd ..
+}
+
+# CLI
+echo "$PREFIX/lib" >> /etc/ld.so.conf.d/build.tmp.conf
+ldconfig
+
+if [[ -n "$2" ]] ; then
+	$2-build-$1-$MODE
+elif [[ -n "$1" ]] ; then
+	# build-$1-$MODE
+	build-package "$1"
+else
+	# dep-build-rtorrent-$MODE
+	build-world
+fi
+
+rm /etc/ld.so.conf.d/build.tmp.conf
+ldconfig
