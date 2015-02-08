@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 #packages needed: libtool pkg-config build-essential
-PREFIX=$( pwd )/prefix
-SSLDIR=$PREFIX/lib/ssl
+ROOT=$( pwd )
+PREFIX=$ROOT/prefix
 export ACLOCAL_PATH=$PREFIX/share/aclocal
 export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
 MODE=static
-unset LANG
 set -e
 
 # dep notes. each library implies its dependencies
@@ -13,9 +12,6 @@ set -e
 # curl: openssl
 # libtorrent: curl cppunit
 # rtorrent: libtorrent ncurses
-build-world(){ 
-}
-
 setpkgs(){
 	for p in "${@:3}" ; do
 		pkg[$p-$1]="$2"
@@ -24,9 +20,9 @@ setpkgs(){
 
 declare -A pkg
 pkg[zlib-static]=--static
-pkg[openssl-conf]="-fPIC -DOPENSSL_PIC --openssldir=$SSLDIR" 
-pkg[openssl-configure]=./Configure
 pkg[openssl-dir]="$PREFIX/lib/openssl" 
+pkg[openssl-conf]="linux-x86_64 -fPIC -DOPENSSL_PIC --openssldir=${pkg[openssl-dir]} --with-zlib-lib=$PREFIX/lib --with-zlib-include=$PREFIX/include" 
+pkg[openssl-configure]=./Configure
 pkg[openssl-shared]="shared zlib-dynamic"
 pkg[openssl-static]="no-shared zlib"
 pkg[openssl-cflags]=-fPIC
@@ -36,9 +32,11 @@ pkg[libtorrent-conf]="--with-posix-fallocate --with-zlib=$PREFIX"
 pkg[ncurses-conf]="--without-debug --with-widec --enable-pc-files --with-pkg-config"
 pkg[ncurses-shared]="--with-shared --without-normal"
 pkg[ncurses-static]="--with-normal --without-shared"
+
+setpkgs configure ./configure zlib libtorrent
+setpkgs preconf ./autogen.sh cppunit libtorrent
 setpkgs shared "--enable-shared --disable-static" curl libtorrent rtorrent
 setpkgs static "--enable-static --disable-shared" curl libtorrent rtorrent
-setpkgs preconf ./autogen.sh cppunit libtorrent
 
 build-package(){
 	unset CONFFLAGS CFLAGS CPPFLAGS LDFLAGS LIBS
@@ -54,7 +52,12 @@ build-package(){
 	LIBS="${pkg[$1-libs]} ${pkg[$1-$LINK-libs]}"
 	cd "$1"
 	if [[ -n $PRECONF ]] ; then "$PRECONF" ; fi
-	$CONFIGURE $CONFFLAGS --prefix=$PREFIX
+	if [[ -n ${pkg[$1-configure]} ]] ; then
+		$CONFIGURE $CONFFLAGS --prefix=$PREFIX
+	else
+		$CONFIGURE $CONFFLAGS --with-sysroot=$PREFIX --prefix=$PREFIX
+		#$CONFIGURE $CONFFLAGS CFLAGS="'$CFLAGS'" CPPFLAGS="'$CPPFLAGS'" LDFLAGS="'$LDFLAGS'" LIBS="'$LIBS'" --prefix=$PREFIX
+	fi
 	make
 	make install
 	cd ..
