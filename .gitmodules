@@ -7,6 +7,3 @@
 [submodule "/git/meta"]
 	path = /git/meta
 	url = https://github.com/Canar/meta.git
-[submodule "ard"]
-	path = ard
-	url = git@github.com:Canar/ard.git
