@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+esc1(){
+	echo -n "'"
+	sed "s/\([^a-zA-Z0-9']\)/\\1/g ; s/'/'\\\\''/g" <<< "$@" | tr -d '\n'
+	echo "'" 
+}
+esc2(){
+	local esc="'\''"
+	echo "'${@//\'/$esc}'"
+}
+unesc(){
+	eval "echo $@"
+}
+read l
+echo $l
+esc1 "$l"
+esc2 "$l"
+echo "--"
+a=`esc1 "$l"`
+echo "$a"
+echo -e $a
+unesc $a
+if unesc $a ; then
+	print yea
+else
+	print nein
+fi

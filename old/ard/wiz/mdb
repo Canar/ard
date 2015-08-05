@@ -1,0 +1,6 @@
+mdb(X):-artist(X).
+mdb(X):-album(X).
+mdb(X):-track(X).
+artist(ddrkirby,'DDRKirby(ISQ)').
+album(loveeverlasting,ddrkirby,2013,'Love Everlasting').
+

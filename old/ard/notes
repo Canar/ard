@@ -1,0 +1,3 @@
+wget http://ftp.gnu.org/pub/gnu/ncurses/ncurses-5.9.tar.gz
+libtoolize --install fixes install-sh error.
+

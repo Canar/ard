@@ -1,0 +1,58 @@
+#!/bin/bash
+TARG=test
+declare -A deps
+deps[core]="apt bash debian ssh screen vim debiancdn"
+deps[hithaeglir]="${deps[core]} hithaeglir"
+deps[gondolin]="${deps[hithaeglir]} gondolin"
+
+each(){
+	"$1" $2
+	[ -n "$3" ] && each "$1" "${@:3}"
+}
+order(){
+	image $1
+	[ -n "$2" ] && order "${@:2}"
+}
+image(){
+	mkdir -p $TARG/$( dirname $2 )
+	[ -f "$TARG/$2" ] && rm -r "$TARG/$2"
+	cp -Ll $1/$2 $TARG/$2
+}
+build(){
+	cat $1/image | while read f ; do
+		image $1 $f
+	done
+}
+make(){
+	each build "$@"
+}
+makefor(){
+	make ${deps[$1]}
+}
+zero(){
+	echo >$1
+}
+install(){
+	makefor $1
+	cd $TARG
+	find -L * -type f >../files
+	cd ..
+	mkdir -p bak
+	bn=$( ls -1 bak | wc -l )
+	mkdir bak/$bn
+	while read l ; do 
+		cp -l --parents /$l bak/$bn
+		rm /$l 
+	done < files
+#	cp -r $TARG/* /
+	cp -rl $TARG/* /
+	zerodep $1
+}
+zerodep(){
+	for d in ${deps[$1]} ; do
+		[ -f $d/zero ] && cat $d/zero | while read f ; do
+			zero /$f
+		done
+	done
+}
+"$@"

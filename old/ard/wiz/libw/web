@@ -1,0 +1,30 @@
+#!/bin/bash
+
+get-links(){
+	mkdir -p /run/wiz/get-links
+	cd /run/wiz/get-links
+	wget "$1" | filter-wget | xargs cat | filter-links
+}
+filter-links(){
+	sed -r 's;=['\''"]?(http://[^'\''" ]+);\n\1\n;g' | grep '^http' | sort | uniq
+}
+filter-links2(){
+	sed -r 's;(http://[^'\''"\>< ]+);\n\1\n;g' | grep '^http' | sort | uniq
+}
+filter-wget(){
+	grep saved | cut -d"'" -f2
+}
+valid-fn(){
+	sed 's [][<>|#!?@$/:() ] - g'
+}
+link-db-init(){
+	mkdir link
+	mkdir get
+	while read l ; do
+		echo ""
+	done
+}
+link-db-add(){
+	fn=`echo "$1" | valid-fn`
+	[ -f "$fn" ] ||  echo "$1" > link/$fn
+}

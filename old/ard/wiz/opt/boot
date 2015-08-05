@@ -1,0 +1,1 @@
+core="$core linux-image-$arch grub-pc firmware-linux firmware-realtek firmware-ralink intel-microcode os-prober lvm2"

@@ -1,0 +1,33 @@
+#set -v 
+#is better than
+#set -x
+
+cmd="$@"
+echo "$cmd" > cmd
+cmdf="`sed 's;/;-;g' cmd`"
+eval "`cat cmd`" > "$cmdf"
+tr '[:space:]' '\n' <"$cmdf" >Dict
+tr '[:upper:]' '[:lower:]' <Dict >dict
+sed -r 's [^A-Za-z0-9_'\''"-]+ \n g' <dict >atoms
+sort atoms > dict
+uniq -c dict > ct
+sort -nr ct > tab
+sed -r 's/\W+/ /g' tab > ' '
+#eval "$@"
+#537  vi tab 
+#538  xxd tab | more
+#539  man socat
+#540  man execve
+#541  w s gcc
+#542  svn checkout svn://gcc.gnu.org/svn/gcc/trunk /usr/local/src/gcc
+#543  apt-get install svn
+#544  apt-get install subversion
+#545  svn checkout svn://gcc.gnu.org/svn/gcc/trunk /usr/local/src/gcc
+#546  ls
+#547  vi tab 
+#548  sed 's/ +/ /g'  tab
+#549  sed 's/\ +/\ /g'  tab
+#550  sed -r 's/\ +/\ /g'  tab
+#551  sed -r 's/\ +/\ /g;s/^\W//g'  tab
+#552  sed -r 's/ +/ /g;s/^\W//g'  tab
+#553  history 50 > h

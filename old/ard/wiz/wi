@@ -1,0 +1,122 @@
+#!/bin/bash
+app="wi"
+suite="${app}z"
+this="/$suite/$app"
+opt=/$suite/opt
+. $opt/user
+
+parent="ssh://$account/$suite"
+comp=main,contrib,non-free
+compsp="$( echo $comp | tr ',' ' ' )"
+instcmd="apt-get install --force-yes -y "
+prepflag="--download-only "
+epoch=$(date '+%s')
+tmp="/tmp/$app.$epoch."
+expect=/$suite/expect/
+pswd=/$suite/secure/passwords/
+
+umount-loc(){
+	umount $1/dev/pts
+	umount $1/dev
+	umount $1/proc
+	umount $1/sys
+	umount $1
+}
+install-cached(){ # $preset $dev $label $cacheloc
+	echo "copy-cache '$4' "'"$loc/var/cache/apt/archives"' >scripts/post-format
+	install "${@:1:3}"
+}
+copy-cache(){ # $src $loc
+	mkdir -p $2/var/cache/apt/archives
+	cp $1/* $2
+}
+prep-chroot(){
+	mount -t proc proc "$1"/proc
+	mount -t sysfs sys "$1"/sys
+	mount -t devtmpfs dev "$1"/dev
+	mount -t devpts devpts "$1"/dev/pts
+}
+clone(){
+	expect/git-clone `cat secure/passwords/parent` "$parent" "$1/$suite"
+}
+install(){ # $preset $dev $label
+	preset=$1
+	dev=$2
+	label=$3
+	. $opt/$preset
+
+	set -e
+	gpg --decrypt < secure.tar.gpg > secure.tar
+	tar xf secure.tar
+	rm -rf secure.tar
+	mkdir -p /$suite/scripts
+	mkfs.ext4 -L $label $dev
+	loc=/mnt/tmp/deb
+	mkdir -p $loc
+	mount $dev $loc
+	mkdir -p $loc/etc
+	echo "$dev / ext4 defaults 1 2" > $loc/etc/fstab
+	set +e
+	echo "return 0" >>/$suite/scripts/post-format
+	. /$suite/scripts/post-format
+
+	debootstrap --components=${comp} ${ver} "$loc" ${mirror} || exit 1
+	clone "$loc"
+	cp -r /$suite/secure $loc/$suite
+	cp -r /$suite/fs/* $loc
+	chroot "$loc" bash -x $this inner $preset "$loc"
+
+	rm -rf secure
+}
+apt-try(){
+	cmd="$instcmd $@"
+	eval "$cmd" || eval "$cmd" || exit 2 
+}
+inner(){
+	. $opt/$1
+
+	[[ $(ls -1 "$2/sys/class" | wc -l) -gt 0 ]] || prep-chroot
+
+	repo="$mirror $ver $compsp"
+	echo "deb $repo" >/etc/apt/sources.list
+	echo "deb-src $repo" >>/etc/apt/sources.list
+	echo "deb http://www.deb-multimedia.org $ver main non-free" >>/etc/apt/sources.list
+	apt-get update
+	apt-try $prepflag $install
+	apt-try $core 
+	${expect}passwd `cat ${pswd}root`
+	${expect}adduser user `cat ${pswd}user`
+
+	install-wiz
+	rm -rf /usr/local/src
+	mkdir /ard
+	ln -s /ard /usr/local/src
+	ln -s /$suite /ard/wiz
+}
+install-wiz(){
+	rm /usr/bin/w
+	cp -l /$suite/w /bin/w
+	cp -l /$suite/wi /bin/wi
+	cp -l /$suite/wiz /bin/wiz
+	cp -l /$suite/mz /bin/mz
+	git-config
+}
+firstboot(){
+	. $opt/$1
+	apt-try $install
+}
+git-config(){
+	git config --global user.email "$mail"
+	git config --global user.name "$root"
+	git config --global push.default simple
+	git config --global core.editor vim
+}
+hax(){
+	wat="$*"
+	echo "$wat"
+}
+if [[ -z "$@" ]] ; then
+	echo "$0 install-wiz"
+else
+	eval "$@"
+fi

@@ -1,0 +1,15 @@
+etc/vim/vimrc
+etc/bash.bashrc
+etc/screenrc
+etc/apt/sources.list.d/dmo.list
+etc/apt/sources.list.d/main.list
+etc/apt/apt.conf
+etc/default/locale
+etc/ssh/ssh_config
+etc/skel/.bashrc
+etc/skel/.bash_logout
+etc/skel/.profile
+etc/wifi
+root/.bashrc
+root/.bash_logout
+root/.profile

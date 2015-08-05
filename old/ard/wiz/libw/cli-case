@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#grep	CLICASE in ideas...
+
+case	"${@:1:1}" in
+	gs)	cli-git-save		"${@:2}"	;;
+	gsm)	cli-git-save-message	"${@:2}"	;;
+	gss)	cli-git-save-save	"${@:2}"	;;
+	i)	cli-install		"${@:2}"	;;
+	iq)	cli-install-query	"${@:2}"	;;
+	iv)	cli-install-verbose	"${@:2}"	;;
+	iu)	cli-install-update	"${@:2}"	;;
+	iw) 	cli-install-wiz		"${@:2}"	;;
+	l)	cli-list		"${@:2}"	;;
+	lt)	cli-list-tree		"${@:2}"	;;
+	lx) 	cli-linux		"${@:2}"	;;
+	m)	cli-match		"${@:2}"	;;
+	pp)	cli-pipe-pipe		"${@:2}"	;;
+	p)	cli-paginate		"${@:2}"	;;
+	q)	cli-query		"${@:2}"	;;
+	qc)	cli-query-cloaked	"${@:2}"	;;
+	qr)	cli-query-raw		"${@:2}"	;;
+	ql)	cli-query-links		"${@:2}"	;;
+	r)	cli-regexp		"${@:2}"	;;
+	rq)	cli-regexp-query	"${@:2}"	;; 
+	w) 	cli-wiz 		"${@:2}"	;;
+	wn) 	cli-wiz-new		"${@:2}"	;;
+	wc) 	cli-wiz-cli		"${@:2}"	;;
+	ws)	cli-wiz-save		"${@:2}"	;;
+	wss)	cli-wiz-save-save	"${@:2}"	;;
+	v)	cli-video		"${@:2}"	;;
+	vv)	cli-video-verbose	"${@:2}"	;;
+	*)	cli-default		"$@"		;;
+esac
+

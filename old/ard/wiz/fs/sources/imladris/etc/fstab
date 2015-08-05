@@ -1,0 +1,9 @@
+/dev/mapper/imladris-sid 	/			ext2 defaults 1 2
+/dev/mapper/imladris-home	/home			ext2 defaults 0 0
+/dev/mapper/imladris-var	/var			ext2 defaults 0 0
+/dev/mapper/imladris-swap	none			swap defaults 0 0
+/dev/sda1			/imladris/sda1 		ext2 defaults 0 0
+root@gondolin:/gondolin/single	/ennorath/gondolin/single	fuse.sshfs x-systemd.automount,delay_connect,_netdev,allow_other,direct_io,uid=1000,gid=1000,cache=no,workaround=rename,reconnect 0 0
+root@gondolin:/gondolin/mirror	/ennorath/gondolin/mirror	fuse.sshfs x-systemd.automount,delay_connect,_netdev,allow_other,direct_io,uid=1000,gid=1000,cache=no,workaround=rename,reconnect 0 0
+root@gondolin:/gondolin/images	/ennorath/gondolin/images	fuse.sshfs x-systemd.automount,delay_connect,_netdev,allow_other,direct_io,uid=1000,gid=1000,cache=no,workaround=rename,reconnect 0 0
+

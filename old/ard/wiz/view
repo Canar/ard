@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+list=NOWPLAYING
+listall=$list-ALL
+log=view.log
+in="$1" ; shift
+top=$in
+last=`grep Playing $log | cut -d' ' -f2 | cut -d. -f1,2 | tail -1`
+mpv(){
+	mplayer $@ &>> $log
+}
+mpvl(){
+	mpv -playlist $@
+
+}
+set -x
+if [[ ( $in = "last" ) || ( $in = "" ) ]] ; then
+	in="$1" ; shift
+	ls -tr1 --color=no | xargs find > $list
+	egrep '[a-z]+...v$' $list | tee $listall
+	if [[ $top = "last" ]] ; then
+		mpv "$last"
+	elif [[ $top = "" ]] ; then
+		sort -r $listall > $list
+		mpvl "$list"
+	else
+		if [[ $in = "s*" ]] ; then 
+			in="$1" ; shift
+			sort -R $listall > $list
+			cp $list $listall
+		fi
+		let z="(( $in + 1 ))"
+		if [[ $z > 1 ]] ; then
+	             tail -$in $listall > $list
+		fi
+		mpv "$last"
+	fi
+else
+	echo "view last [shuffle] [number]."
+	echo ""
+       	echo "view last n videos. shuffle if third token begins with 's'."
+fi

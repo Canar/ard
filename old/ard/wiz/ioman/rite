@@ -1,0 +1,48 @@
+#!/usr/bin/swipl -q
+% vi:ft=prolog
+:- initialization main.
+args(A):-current_prolog_flag(argv,A).
+arga(A):-args(S),concat_atom(S,' ',A).
+% main:-arga(A),print(A),nl,halt.
+main:-
+	simple_program([],P),
+	rite(P),
+	halt.
+
+c(L,A):-atomic_list_concat(L,A).
+cc(L,S,A):-atomic_list_concat(L,S,A).
+simple_program(Block,[func(main,byte,Args,Block)]):-
+	is_list(Block),
+	%	Block=[_|_],
+	Args=[id(word,_,argc),id(array(pointer(cstring)),_,argv)].
+rite(Program):-
+	select(A,Program,Defs),
+	A=..[func,main|_],
+	maplist(ritedef,Defs),
+	ritedef(A).
+
+funclib(printf,'stdio.h')
+ctype(byte,char).
+ctype(word,int).
+ritetype(array(pointer(cstring)),Id,A):-
+	c(['char *',Id,'[]'],A).
+ritetype(T,Id,A):-
+	ctype(T,B),
+	c([B,' ',Id],A).
+ritetypemap(id(T,_,I),A):-ritetype(T,I,A).
+
+ritedef(func(Name,Ret,Args,_)):-
+	ritetype(Ret,Name,Dec),
+	maplist(ritetypemap,Args,Argl),
+	cc(Argl,', ',Arga),
+	c([Dec,'(',Arga,') {'],Line),
+	print(Line),nl,
+	print('}'),nl.
+
+	
+
+
+	
+	
+
+	

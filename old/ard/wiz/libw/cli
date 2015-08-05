@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+cli-git-save(){		git commit -a && git push		;}
+cli-git-save-message(){		git commit -a -m "$@" && git push		;}
+cli-git-save-save(){		git commit -a -m wiz-gss && git push		;}
+cli-install(){		local-install "$@"		;}
+cli-install-query(){		local-search "$@"		;}
+cli-install-verbose(){		local-detail "$@"		;} # v is for verbose
+cli-install-update(){		local-update "$@"		;} 
+cli-install-wiz(){		install-wiz		;} 
+cli-list(){		ls -U1		;} #list
+cli-list-tree(){		find "$@"		;} #list tree
+cli-linux(){		linux "${@:2}"		;} #LinuX
+cli-match(){		match "${@:2}"		;} #is this just grep? synonym for rq?
+cli-pipe-pipe(){		echo "quick piping infrastructure"		;} 
+cli-paginate(){		eval "${@:2}" |& less		;} 
+cli-query(){		$wdir/wiz search "$@"		;} 
+cli-query(){		google "${@:2}"		;} 
+cli-query-cloaked(){		google-cloaked "${@:2}"		;} 
+cli-query-raw(){		google-raw "${@:2}"		;} 
+cli-query-links(){		google-links "${@:2}"		;} 
+cli-regexp(){		sed -r "s\x7f$1\x7f$2\x7fg"		;} 
+cli-regexp-query(){		egrep "${@:1:1}"		;} 
+cli-wiz(){		cd $wdir ; vim w		;} 
+cli-wiz-new(){		cd $wdir ; vim libw/fresh		;} 
+cli-wiz-cli(){		cd $wdir ; vim libw/cli		;} 
+cli-wiz-save(){		cd $wdir ; git commit -a ; git push		;}
+cli-wiz-save-save(){	cd $wdir ; git commit -a -m wiz ; git push		;} 
+cli-video(){		video-pi "${@:2}"		;} 
+cli-video-verbose(){		video-verbose-pi "${@:2}"		;} 
+
+cli-default(){		test -z $1 && echo "need args..." ||  "$@"		;}
+

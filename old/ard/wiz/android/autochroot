@@ -1,0 +1,72 @@
+#!/system/xbin/bash
+sshdport=23
+proxy=user@ennorath.ca
+
+xenv=/system/xbin/env
+xchroot=/system/xbin/chroot
+xsshd=/system/bin/sshd
+xssh=/system/bin/ssh
+xmount=/system/bin/mount
+pthis="$( cd "$( echo "${BASH_SOURCE[0]%/*}" )" && pwd )"
+fthis=$0
+xthis=$pthis/$fthis
+pchroot=/mnt/deb-armel
+xcbash=/bin/bash
+
+go-ssh(){
+	start-sshd
+	start-tunnel
+}
+gen-key(){
+	ssh-keygen -f key -N '' -C ''
+#	ssh-keygen -t ecdsa -b 521 -f key$1 -N '' -C ''
+	mv key $1.key
+	mv key.pub $1.id
+	cat $1.id | $xssh $proxy 'cat >> ~/.ssh/authorized_keys'
+}
+start-sshd(){
+	$xsshd -f sshd.conf -De &>> sshd.log &
+	sleep 2
+	cat sshd.log
+}
+start-tunnel(){
+	$xssh -fNR 0:localhost:$sshdport $proxy >& link
+	scp link $proxy:/home/user
+	scp sshd.id $proxy:/home/user
+}
+bind-mount(){
+	$xmount -o bind $1 $2/$1
+}
+ensure-mount(){
+	if ( $xmount | grep -q $2/$1 ) ; then
+		echo "$1 already mounted."
+	else
+		bind-mount $1 $2
+	fi
+}
+enter-chroot-noenv(){
+	ensure-mount /dev $pchroot
+	cp $xthis $pchroot/$fthis
+	$xenv - $xchroot $pchroot $xcbash /$fthis prepare-chroot-env
+	umount $pchroot/dev
+}
+prepare-chroot-env(){
+	export TERM=xterm
+	export PATH=$PATH
+	export HOME=/root
+	mount -t proc none /proc
+	mount -t sysfs none /sys
+	mount -t devpts none /dev/pts
+	bash -l
+	umount /proc
+	umount /sys
+	umount /dev/pts
+}
+show-path(){
+	echo "$fthis"
+	echo "$pthis"
+	echo "$xthis"
+}
+set -x
+$@ 
+

@@ -1,0 +1,53 @@
+#!/bin/bash
+CONFp="./configure --prefix=$PREFIX --disable-shared --enable-static"
+CONF="$CONFp $NEWTOOLS"
+CONFl="$CONF $xNLS"
+ORDER="gcc0 glibc attr acl gmp mpfr mpc isl cloog coreutils diffutils gawk grep make ncurses patch readline sed texinfo bash autoconf automake m4 vim"
+conf[gnulib]=""
+conf[gcc0]="$CONFp --enable-languages=c,c++ --disable-bootstrap --disable-multilib --disable-shared"
+h conf "$CONFl" bash texinfo glibc gcc coreutils diffutils gawk m4 vim
+h conf "$CONF" default autoconf automake grep groff ncurses sed attr
+h conf "$CONF `eval echo $ALLINC`" acl mpc cloog
+conf[bash]="${conf[bash]} --without-bash-malloc --enable-static-link"
+conf[ncurses]="${conf[ncurses]} --with-shared --without-debug --enable-pc-files --enable-widec --with-pkg-config-libdir=/strap/lib/x86_64-linux-gnu/pkgconfig --without-ada "
+conf[sed]="${conf[sed]} CFLAGS=-Wno-error"
+conf[cloog]="${conf[cloog]} --with-gmp-prefix=$PREFIX --with-gmp-prefix=$PREFIX --with-isl-prefix=$PREFIX"
+#shared: conf[glibc]="${conf[glibc]} --enable-kernel=4.0.0 --with-headers=$PREFIX/include/ --with-binutils=$PREFIX/bin --disable-profile --disable-multi-arch --without-selinux --disable-addons"
+conf[glibc]="${conf[glibc]} --enable-kernel=4.0.0 --with-headers=$PREFIX/include/ --with-binutils=$PREFIX/bin --disable-profile --disable-multi-arch --without-selinux --disable-addons "" --enable-static-nss --disable-werror"
+
+dep[acl]=attr
+dep[cloog]="isl polylib gmp openscop"
+dep[mpc]=mpfr
+dep[gcc]="mpc mpfr gmp"
+h dep gnulib coreutils gettext grep groff sed diffutils
+
+gen[autoconf]='autoreconf -fvi'
+#gen[make]='make update'
+h gen ./autogen.sh default acl attr gettext texinfo cloog isl openscop polylib
+h gen '' gmp bash gnulib mpc gcc0 glibc mpfr ncurses make readline texinfo vim
+h gen ./bootstrap patch coreutils diffutils  grep sed m4
+h gen ./bootstrap.sh automake gawk
+h gen 'autoreconf -fvi' autoconf
+
+init[make]='autoreconf -i'
+init[cloog]=cloogstrap
+init[gcc0]=gcc0strap
+init[vim]=vimstrap
+i init gnulibstrap coreutils gettext grep groff sed diffutils grep patch m4
+
+install[default]='make install'
+install[gnulib]=''
+
+make[default]=make
+make[make]='make update all'
+vcs[default]=git
+vcs[gmp]=tar/gmp-6.0.0
+vcs[mpfr]=tar/mpfr-3.1.3
+vcs[expect]=tar/expect-5.45
+vcs[tcl]=tar/tcl-8.6.4
+vcs[texinfo]=tar/texinfo-5.2
+vcs[tk]=tar/tk-8.6.4
+vcs[cloog]=fixed/cloog
+vcs[gcc0]=tar/blank
+
+

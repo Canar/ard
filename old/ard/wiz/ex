@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+esc1(){
+	echo -n "'"
+	sed "s/\([^a-zA-Z0-9']\)/\\1/g ; s/'/'\\\\''/g" <<< "$@" | tr -d '\n'
+	echo "'" 
+}
+go(){
+	find -type f |\
+	while read fil ; do
+		sed '/=$/ { N ; /=\n/ d }' $fil |\
+		sed -r 's/=([[:xdigit:]]{2})/\\x\1/g' > asdf
+		grep \= asdf
+		#sed "s/\([^a-zA-Z0-9']\)/\\1/g ; s/'/'\\\\''/g" > asdf
+		printf "%s" "`cat asdf`"  |\
+		sed '/=$/ { N ; /=\n/ d }' |\
+		sed '{ :l ; /\@/ !{ d ; b l ; } }' |\
+		sed 's/[<>,:;&()="'"'"' ]/\n/g' |\
+		sed '{ :r ; /\@/ !{ d ; b r ; } }'
+	done 
+}
+go
+	

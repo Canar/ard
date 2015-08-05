@@ -1,0 +1,3 @@
+read-line-into-file out
+split-file-on-html-tag-to-file out Query out.split
+shift-lines-from-file-into-files out.split head body tail

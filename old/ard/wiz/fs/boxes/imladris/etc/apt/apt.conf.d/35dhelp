@@ -1,0 +1,3 @@
+Dpkg::Post-Invoke {
+    "if test -x /usr/share/dhelp/scripts/index-deferred; then /usr/share/dhelp/scripts/index-deferred; fi";
+};

@@ -1,0 +1,39 @@
+#!/bin/bash
+entity-encode(){
+	recode UTF-8..XML "$1"
+}
+entity-decode(){
+	recode XML..UTF-8 "$1"
+}
+read-line-into-file-via-stdio(){ #file is $1
+	read -r -e temp
+	dont-clobber "$1"
+	( echo "$temp" ) > "$1" 
+}
+read-line-into-file() {
+	IFS=$nl
+	read-line-into-file-via-stdio "$1"
+	unset IFS
+}
+remove-newlines-from-file(){
+	process-file-inplace "tr -d '\n'" "$1"
+}
+split-file-on-html-tag-to-file(){
+	dont-clobber "$3"
+	sed -r 's (<'"$2"'>)(.*)(</'"$2"'>) \n\1\2\3\n g' "$1"  > "$3"
+}
+shift-lines-into-files(){
+	if [[ -n "$1" ]] ; then
+		read-line-into-file "$1"
+		shift
+		shift-lines-into-files "$@"
+	fi	
+}
+shift-lines-from-file-into-files(){
+	f="$1"
+	shift
+	shift-lines-into-files "$@" < "$f"
+}
+source-all(){
+	each include "$@"
+}

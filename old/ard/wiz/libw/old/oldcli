@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+#below, i define a one-off language
+#english is SVO, but nouns are common
+#SVO implies effector takes precedence over effect
+#one noun, many parameters
+#"creator defines language" is the relation?
+#define w-cmd-line install, install query, install verbose, 
+
+case "${@:1:1}" in
+	gs)	git commit -a && git push ;;
+	gsm)	git commit -a -m "${*:2}" && git push ;;
+	gss)	git commit -a -m wiz-gss && git push ;;
+	i)	local-install "${@:2}" ;;	#see $wdir/opt
+	iq)	local-search "${@:2}";;
+	iv)	local-detail "${@:2}";;	# v is for verbose
+	iu)	local-update "${@:2}";;
+	iw) 	install-wiz;;
+	l)	ls -U1;;	#list
+	lt)	find "${@:2}";;	#list tree
+	lx) 	linux "${@:2}";;	#LinuX
+	m)	match "${@:2}";;	#is this just grep? synonym for rq?
+	pp)	echo "quick piping infrastructure" ;;
+	p)	eval "${@:2}" |& less ;;
+	#q)	$wdir/wiz search "$@" ;;
+	q)	google "${@:2}" ;;
+	qc)	google-cloaked "${@:2}" ;;
+	qr)	google-raw "${@:2}" ;;
+	ql)	google-links "${@:2}" ;;
+	r)	sed -r "s\x7f$1\x7f$2\x7fg" ;;
+	rq)	egrep "${@:1:1}";;
+	w) 	cd $wdir ; vim w ;;
+	wn) 	cd $wdir ; vim libw/fresh ;;
+	wc) 	cd $wdir ; vim libw/cli ;;
+	ws)	cd $wdir ; ( git commit -a ; git push ) ;;
+	wss)	cd $wdir ; ( git commit -a -m wiz ; git push ) ;;
+	v)	video-pi "${@:2}" ;;
+	vv)	video-verbose-pi "${@:2}" ;;
+	*)	"$@" ;;
+esac
+

@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+def db val
+	20*Math.log10(val)
+end
+def process file
+	n=0
+	opp=0.0
+	while (s=file.read(441*8))!=nil
+		nums=s.unpack("f*")
+		nums.map!{|x|x*x}
+		pp=nums.inject(:+)/nums.size
+		pp=Math.sqrt(pp)
+		puts "#{n}	#{format("%.10f",db(pp))}	#{format("%.10f",pp-opp)}"
+		opp=pp
+		n+=1
+	end
+end
+def main arg
+	file=File.new(arg[0],"r")
+	process file
+end
+main ARGV

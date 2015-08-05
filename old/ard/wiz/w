@@ -1,0 +1,7 @@
+#!/usr/bin/env bash 
+#w - the shitty assortment of apps - like wiz, only more agile
+wdir=/wiz
+. $wdir/libw/base
+each inclopt debian
+each include global linux lib web fresh var cli 
+. $ldir/cli-case

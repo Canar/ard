@@ -1,0 +1,226 @@
+[']
+][qsqpn]
+	q	delimiter 
+	s	word splitter
+	p	sentence splitter
+	n	block splitter
+	[]	directional delimiter
+
+this text is a comment
+
+a tree is a root node with leaf nodes
+	head line newline head tab line
+
+sentence type	synonym
+	request		command, program, order, job
+					causes change in state
+	statement	claim, assertion, predicate
+					evaluable to true or false
+					idempotent, ie. causes no change in state
+
+'
+
+	first four splitter classes: 
+	0	primary		quote			switches mode between comment and code
+	1	secondary	space			will be developed later to encompass all whitespace except newline
+	2	tertiary		full-stop	single newline
+	3	quaternary	newline		overrides all but char 0
+
+'I am.'
+
+	symbols	qspn 
+	words		I am
+
+'
+The word I is a word.
+The word am is a word.
+The word the is a word.
+The word word is a word.
+The word is is a word.
+The word a is a word.
+'
+	
+
+	The word I is a noun.
+	
+	The word am is a word.
+
+	The word the is a word.
+
+	The word word is a word.
+
+	The word is is a word.
+
+	The word a is a word.
+
+,. I, am, the, word
+
+
+
+			  -- I am the word. Is a...
+
+			  The word I means the user of the word.
+
+			  The wor
+
+			  The word the precedes a word to define a class. 
+
+			  The word word precedes a word to define a word.
+
+			  -- I am the word is 
+
+
+
+			  The word for a sequence of words is .
+
+
+
+The word for a sentence of words is a sentence. 
+
+
+
+Verbs cause. 
+
+A word is a symbol. 
+
+A word is to a symbol what a sentence is to a word. 
+A word may be a sentence. 
+A symbol may be a word.
+
+All words are symbols. All groups of words are usually...
+
+letter symbol word phrase sentence paragraph topic section chapter book volume series
+
+I. Be. (I am.) 
+
+All valid sentences begin with a capital letter.
+
+The term for a list of terms is the list. (This is just a comment, freestyle and unparsed. (Comments can be nested.) A literate, approachable programming style must contain comments. The more natural the language, the better.)
+
+The term for a list of lists is the list. (A traditional approach to computing sees everything as one long string of bits. Theoretically, a tree can be traversed in different ways to yield multiple correct sequences, but only a finite number of actual solutions.)
+
+The term for a list with one term is term. (This is critical, there is no difference between a term and a list. A list is merely a term defined by its contents. A term's contents have a type. There are two basic types: terms and lists. Terms may be verbs. Verbs document a cause and effect relationship. Terms may be nouns. Nouns are types. Nouns are objects. Terms are nouns. Verbs are terms. Verbs are nouns. To define a noun by the same verb is to define an object by its default action. The default action is "get". The language succeeded by this manifesto is called "get event".)
+
+The term the precedes the type in defining the object. The type specifies the object. The object has the type object. The object is defined as the term that precedes the type. The object may be specified by the type.
+
+The term term is defined as 
+
+The object is defined as itself. The term "is defined as itself" is defined as itself.
+
+The bitstream is defined as a definite sequence of at least a finite number of bits.
+
+A=term
+B=noun
+
+The A for a B of As is a B.
+The A for a B of Bs is a B.
+The A for a B with one A is an A.
+A number of As is a B.
+
+Code is just a data type with unusual properties.
+State is data. 
+Good code represents the largest possible state space in the smallest possible data space.
+	- compilation is both inevitable and ignorable
+Every program has a single point of origin. If multiple producers work together, all are treated as equal by default.
+
+
+!1 - producer variable 1
+	- p,identifier, p,blah, p,foo
+	- might be static or dynamic
+		- static returns same result always
+		- dynamic behaves as a stream
+		- semi-dynamic - change is infrequent
+			- change can be quantified and optimized for.
+@1 - consumer variable 1
+	- c,identifier, c,name, c,whatever.
+	- transports data away; is the receiver for state that is calculated but no longer useful
+		- optimized system has no wasted space; extra space is used for precalculation
+			- in non-compiled form, most common operations must be single characters
+			- most common
+	- @1 is roughly stdin, @2 roughly stderr... ? or are they? one channel of log with multiple channels of data. the log is singular, one in many
+
+In a programming context, objects are represented as nouns. Functions and methods are represented as verbs. A method is simply a function that is bound to a particular noun. Programs are verbs. Programs are lists of verbs. Programs are lists of words. Programs are lists of nouns. A word can be a noun or a verb or both. Term is a noun and a verb. Term is that which is described, a word. Term is the action of describing something. 
+
+#A ball is a round object that is thrown.
+
+A definition defines a list.
+A number of definitions defines a list.
+A number of definitions defines a definition.
+A list containing one definition defines a definition.
+All lists are definitions. 
+Not all definitions are lists. 
+A definition that is not a list is an atom.
+
+It takes a lot to dislodge a system that can recompose itself to adapt to new threats.
+Hide in "free" disk space. Redundant / diverse system. Multiple independent implementations of the same thing. Like the teleporter gate tech exploit in that onebook. Multiple implementations test themselves. wget x curl x web. OS is a database of implementations.
+
+There are worlds that exist that we cannot even imagine.
+
+Primary lash punctuation involves the space, more generally the white space, 
+
+Prolog backtracks from failed predicates, but behaves in a depth-first approach. There are logical cases where a breath-first approach is preferable.
+
+
+A letter is a defined sequence of strokes(?)
+A word is a defined sequence of letters.
+A phrase/sentence is a defined sequence of words.
+A paragraph is a defined sequence of sentences.
+...
+
+particle->aggregation->restriction
+set->for any set containing at least one set->there exist a set in the such that...
+
+
+Either-or scenarios are great for defining logic.
+"Adjectives" have no physical reality. They are used to differentiate nouns. Language is simple. Sentence. Sentence. Sentence. Sentences can be a bit more complicated, but ultimately, they hinge upon one verb. One action. One mapping between causal state change and the effectors of the change. Every sentence has evaluable truth. Do I think this is true? The mapping is a gradient between two alternatives. Some might see things in "black and white" while others see grey. Nouns are data, verbs are process. Noun, data, thing. Verb, process, command, call.
+
+In en... the thought was "a word means one thing" but I don't think that's true. Isn't that the point of Prolog's non-determinism? Is "en" the proper name? It fits, dammit.
+
+The rough, order-of-magnitude increases in language terms is: Letter, word, sentence, paragraph, page, chapter, volume, book, series, author, collection, study, library.
+
+Code does likewise: character, identifier, command, procedure, module, library, application...
+
+The point of the indenting debate is that whitespace is arbitrary. Some people like dense code, others like sparse.
+
+A dictionary is a list of words and a list of definitions/objects/things.
+
+Synonyms are definitions that share words.
+
+I need a way to predicate; I need a means to find a character such that the character is unique.
+
+The only way to represent a string is a pair of pointers in memory, the first and last bytes. All strings are constant and static. Join Huffman coding with Markov chains?
+
+Disjoin via disjunction (or) to gain generality, conjoin via conjunction (and) to gain specificity.
+
+
+The top level object is the "computer". In wiz, that's what we call said top level object. All lower-case, that is, no modifiers, no tags, no boolean traits, no bifurcations.
+
+Three is the first group of individuals where dynamics of majority emerge. Three distinct individuals is the first "true" case of the majority dynamic. They say two's company, but three's a crowd. I'd argue that two's company, three's really hard, and four's a crowd; someone is going to feel an outsider unless all four are distinct individuals.
+
+"is" is instantiation/specification; the commonality between a class and an interface with respect to identity. Identity binds. Unification connects. Polymorphism relates. [creating-instances-of], instantiation/specification, compares.
+
+Commas quickly provide type context.
+
+job : work :: term : list
+
+term is my atom term. atom is not term. term is a layer of abstraction and indirection beyond the atom, the identifier.
+
+todo list
+extend using gnu parallel
+
+
+rob has told me often to log the time i spend doing things. i think i should.
+
+Environment is context and state.
+
+When logging, record percentage of job, wrt timeslice, etc.
+
+CLICASE
+#below, i define a one-off language
+#english is SVO, but nouns are common
+#SVO implies effector takes precedence over effect
+#one noun, many parameters
+#"creator defines language" is the relation?
+#define w-cmd-line install, install query, install verbose, 
+
+

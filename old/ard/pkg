@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+#packages needed: libtool pkg-config build-essential
+ROOT=$( pwd )
+PREFIX=$ROOT/prefix
+export ACLOCAL_PATH=$PREFIX/share/aclocal
+export PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+MODE=static
+set -e
+
+# dep notes. each library implies its dependencies
+# openssl: zlib
+# curl: openssl
+# libtorrent: curl cppunit
+# rtorrent: libtorrent ncurses
+setpkgs(){
+	for p in "${@:3}" ; do
+		pkg[$p-$1]="$2"
+	done
+}
+
+declare -A pkg
+pkg[zlib-static]=--static
+pkg[openssl-dir]="$PREFIX/lib/openssl" 
+pkg[openssl-conf]="linux-x86_64 -fPIC -DOPENSSL_PIC --openssldir=${pkg[openssl-dir]} --with-zlib-lib=$PREFIX/lib --with-zlib-include=$PREFIX/include" 
+pkg[openssl-configure]=./Configure
+pkg[openssl-shared]="shared zlib-dynamic"
+pkg[openssl-static]="no-shared zlib"
+pkg[openssl-cflags]=-fPIC
+pkg[curl-conf]="--with-zlib --with-ssl=${pkg[openssl-dir]}"
+pkg[curl-preconf]=./buildconf
+pkg[libtorrent-conf]="--with-posix-fallocate --with-zlib=$PREFIX"
+pkg[ncurses-conf]="--without-debug --with-widec --enable-pc-files --with-pkg-config"
+pkg[ncurses-shared]="--with-shared --without-normal"
+pkg[ncurses-static]="--with-normal --without-shared"
+
+setpkgs configure ./configure zlib libtorrent
+setpkgs preconf ./autogen.sh cppunit libtorrent
+setpkgs shared "--enable-shared --disable-static" curl libtorrent rtorrent
+setpkgs static "--enable-static --disable-shared" curl libtorrent rtorrent
+
+build-package(){
+	unset CONFFLAGS CFLAGS CPPFLAGS LDFLAGS LIBS
+	PRECONF="${pkg[$1-preconf]}"
+	if [[ -n ${pkg[$1-configure]} ]] ; then CONFIGURE=${pkg[$1-configure]} ; else CONFIGURE=./configure ; fi
+	LINK=shared #static shared
+	INCLUDE="-I$PREFIX/include"
+	LIB="-L$PREFIX/lib"
+	CONFFLAGS="${pkg[$1-conf]} ${pkg[$1-$LINK]}"
+	CFLAGS="${pkg[$1-cflags]} ${pkg[$1-$LINK-cflags]} $INCLUDE"
+	CPPFLAGS="${pkg[$1-cppflags]} ${pkg[$1-$LINK-cppflags]} $INCLUDE"
+	LDFLAGS="${pkg[$1-ldflags]} ${pkg[$1-$LINK-ldflags]} $LIB"
+	LIBS="${pkg[$1-libs]} ${pkg[$1-$LINK-libs]}"
+	cd "$1"
+	if [[ -n $PRECONF ]] ; then "$PRECONF" ; fi
+	if [[ -n ${pkg[$1-configure]} ]] ; then
+		$CONFIGURE $CONFFLAGS --prefix=$PREFIX
+	else
+		$CONFIGURE $CONFFLAGS --with-sysroot=$PREFIX --prefix=$PREFIX
+		#$CONFIGURE $CONFFLAGS CFLAGS="'$CFLAGS'" CPPFLAGS="'$CPPFLAGS'" LDFLAGS="'$LDFLAGS'" LIBS="'$LIBS'" --prefix=$PREFIX
+	fi
+	make
+	make install
+	cd ..
+}
+
+# CLI
+echo "$PREFIX/lib" >> /etc/ld.so.conf.d/build.tmp.conf
+ldconfig
+
+if [[ -n "$1" ]] ; then
+	build-package $1
+else
+	for p in zlib openssl curl cppunit libtorrent ncurses rtorrent
+	do
+		build-package $p
+	done
+fi
+
+rm /etc/ld.so.conf.d/build.tmp.conf
+ldconfig

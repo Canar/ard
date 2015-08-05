@@ -1,0 +1,82 @@
+#Port 22
+#AddressFamily any
+#ListenAddress 0.0.0.0
+#ListenAddress ::
+#Protocol 2
+HostKey /data/root/key
+#KeyRegenerationInterval 1h
+#ServerKeyBits 1024
+#SyslogFacility AUTH
+#LogLevel INFO
+#LoginGraceTime 2m
+#PermitRootLogin yes
+StrictModes no
+#MaxAuthTries 6
+#MaxSessions 10
+#RSAAuthentication yes
+#PubkeyAuthentication yes
+#AuthorizedKeysFile	/data/.ssh/authorized_keys
+AuthorizedKeysFile	/data/root/key.pub
+#AuthorizedPrincipalsFile none
+#RhostsRSAAuthentication no
+#HostbasedAuthentication no
+#IgnoreUserKnownHosts no
+#IgnoreRhosts yes
+PasswordAuthentication no
+#PermitEmptyPasswords no
+#ChallengeResponseAuthentication yes
+
+# Kerberos options
+#KerberosAuthentication no
+#KerberosOrLocalPasswd yes
+#KerberosTicketCleanup yes
+#KerberosGetAFSToken no
+
+# GSSAPI options
+#GSSAPIAuthentication no
+#GSSAPICleanupCredentials yes
+
+# Set this to 'yes' to enable PAM authentication, account processing, 
+# and session processing. If this is enabled, PAM authentication will 
+# be allowed through the ChallengeResponseAuthentication and
+# PasswordAuthentication.  Depending on your PAM configuration,
+# PAM authentication via ChallengeResponseAuthentication may bypass
+# the setting of "PermitRootLogin without-password".
+# If you just want the PAM account and session checks to run without
+# PAM authentication, then enable this but set PasswordAuthentication
+# and ChallengeResponseAuthentication to 'no'.
+#UsePAM no
+
+#AllowAgentForwarding yes
+#AllowTcpForwarding yes
+#GatewayPorts no
+#X11Forwarding no
+#X11DisplayOffset 10
+#X11UseLocalhost yes
+PrintMotd no
+#PrintLastLog yes
+#TCPKeepAlive yes
+#UseLogin no
+UsePrivilegeSeparation yes         # Default for new installations.
+#PermitUserEnvironment no
+#Compression delayed
+#ClientAliveInterval 0
+#ClientAliveCountMax 3
+#UseDNS yes
+PidFile /data/root/sshd.pid
+#MaxStartups 10
+#PermitTunnel no
+#ChrootDirectory none
+#VersionAddendum none
+
+# no default banner path
+#Banner none
+
+# override default of no subsystems
+Subsystem	sftp	/usr/libexec/sftp-server
+
+# Example of overriding settings on a per-user basis
+#Match User anoncvs
+#	X11Forwarding no
+#	AllowTcpForwarding no
+#	ForceCommand cvs server

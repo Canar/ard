@@ -1,0 +1,6 @@
+host=fuin
+#mirror=http://http.debian.net/debian/
+#arch=amd64
+#arch="686-pae"
+comp=main,contrib,non-free
+install="$core $base $main"

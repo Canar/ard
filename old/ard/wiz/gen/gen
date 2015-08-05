@@ -1,0 +1,171 @@
+#!/bin/bash
+
+gnulibstrap(){
+	rm -rf $S/$1/{.git,gnulib}
+	ln -s $GIT/$1/.git $S/$1
+	ln -s $GIT/gnulib/ $S/$1
+}
+bring(){
+	cp -r "$1"/* "$1"/.[a-z]*  . || echo "WARNING: bring could find no files in $1 to bring to `pwd`."
+	#ln -s "$1"/* "$1"/.[a-z]* .
+}
+transfer(){
+	pushd .
+	mkdir -p "$1"
+	cd "$1"
+	bring "$2"
+	popd
+}
+prep(){
+	rm -rf {$B,$S}/$1
+	mkdir -p {$B,$S}/$1
+	if [ "$(d vcs $1)" != "git" ] ; then
+		pd="$UP/${vcs[$1]}"
+		transfer $S/$1 $pd
+	else
+		transfer $S/$1 $GIT/$1
+	fi
+	cd $S/$1
+}
+linst(){ 
+	local d="$S/$1/${3-$2}"
+	#mkdir -p "$d"
+	#transfer "$d" "$S/$1"
+	ln -s $S/$2 "$d"
+}
+cloogstrap(){
+	linst cloog isl
+	linst cloog openscop osl
+	#linst cloog gmp
+	#linst cloog polylib
+}
+gcc0strap(){
+	transfer $S/gcc0/gmp $(vcs-dir gmp)
+	transfer $S/gcc0/mpfr $(vcs-dir mpfr)
+	transfer $S/gcc0/mpc $(vcs-dir mpc)
+	transfer $S/gcc0 $GIT/binutils-gdb
+	transfer $S/gcc0 $GIT/gcc
+}
+vimstrap(){
+	rm -rf $B/vim
+	ln -s $S/vim $B/vim
+}
+vcs-dir(){ 
+	d="$(d vcs $1)"
+	if [[ $d == git ]] ; then
+		echo "$GIT/$1" 
+	else
+		echo "$UP/$d" 
+	fi 
+}
+init(){
+	pushd .
+	cd $GIT/linux-stable
+	make mrproper
+	make INSTALL_HDR_PATH=$PREFIX headers_install
+	find $PREFIX \( -name .install -o -name ..install.cmd \) -delete
+	popd
+}
+
+
+full(){
+	rm -rf temp $BUILD
+	mkdir $BUILD
+	mkdir $bGCC
+	mkdir -p $tGCC
+	cp -s $GIT/gcc/* $tGCC
+	cp -s $GIT/binutils-gdb/* $tGCC
+	ln -s $UP/hg/gmp $tGCC/gmp
+	ln -s $UP/svn/mpfr-3.1 $tGCC/mpfr
+	ln -s $GIT/mpc $tGCC/mpc
+	ln -s $GIT/cloog $tGCC/cloog
+	ln -s $GIT/isl $tGCC/isl
+	mkdir $bGCC
+	cd $bGCC
+	$tGCC/$CONF --enable-languages=c,c++ --with-cpu=k8 --disable-bootstrap --disable-multilib --disable-shared --disable-nls
+	ln -s $GIT/glibc $BUILD/glibc
+	CONF="$CONF CC=/strap/bin/gcc CXX=/strap/bin/g++ CPP=/strap/bin/cpp"
+	$BUILD/glibc/$CONF --enable-kernel=4.0.0 --with-headers=/src/native/linux-headers/include/ --with-binutils=/strap/bin --disable-nls --disable-profile --disable-multi-arch --disable-addons --without-selinux
+}
+pkgrec(){
+	echo $1[$2]="${@:3}" >> $G/pkglib
+}
+arbcom(){
+	pushd .
+	cd $S/$2
+	pkgrec "$@"
+	"${@:3}"
+	popd
+}
+pcom(){ prep "$@"; ls ;}
+icom(){ arbcom init "$@" ;}
+gcom(){ arbcom gen "$@" ;}
+ccom(){ arbcom conf $1 $S/$1/$CONFp "${@:2}" ;}
+mcom(){ arbcom make $1 make ;}
+ncom(){ arbcom install $1 make install ;}
+
+CMD=${1:0:1}
+PKG=${1:1}
+MODE=e
+if [ $CMD == "v" ] ; then
+	MODE=${MODE}vx
+	CMD=${PKG:0:1}
+	PKG=${PKG:1}
+fi
+
+R=/src
+G=$R/re
+B=$G/bin
+S=$G/src
+UP=$R/upstream
+GIT=$UP/git
+BUILD=$D/build
+
+D=$S/$PKG
+PREFIX=/strap
+INC=$PREFIX/include
+LIB=$PREFIX/lib
+BIN=$PREFIX/bin
+LDINC="LDFLAGS='-L$LIB'"
+CFINC="CFLAGS='-I$INC'"
+CXINC="CXXFLAGS='-I$INC'"
+ALLINC="$CFINC $CXINC $LDINC"
+NEWTOOLS="CC=$BIN/gcc CXX=$BIN/g++ CPP=$BIN/cpp"
+xNLS="--disable-nls"
+declare -A vcs init gen repo conf build install make dep
+g(){ eval "$1[$2]='$3'" ;}
+h(){ 
+	[ -z "$3" ] && return
+	g "$1" "$3" "$2"
+	h "$1" "$2" "${@:4}"
+}
+i(){ 
+	[ -z "$3" ] && return
+	h "$1" "$2 $3" "$3"
+	i "$1" "$2" "${@:4}"
+}
+
+. gen-static
+#. gen-shared
+
+D=$S/$PKG
+o(){ X=$(echo "\${$1[$2]}") ; eval echo $X ;}
+w(){ [ -z "$2" ] && return ; pushd . ; cd "$1" ; echo "Executing ${@:2} in $1..." ; "${@:2}" ; popd ;}
+d(){ eval echo "\${$1[$2]- \${$1[default]}}" ;}
+u(){ w "$S/$1" $(d $2 $1) "${@:3}";}
+v(){ w "$G/bin/$1" $S/$1/$(d $2 $1) "${@:3}";}
+x(){ w "$G/bin/$1" $(d $2 $1) "${@:3}";}
+all(){ bon $ORDER ;}
+#don(){ d $PKG "${@:2}" ;}
+pon(){ prep $1; $2;}
+bon(){ for p in "$@" ; do for f in p i g c m n;do ${f}on "$p";done;done;}
+con(){ v $1 conf "${@:2}" ;}
+gon(){ u $1 gen ;}
+ion(){ u $1 init ;}
+mon(){ x $1 make ;}
+non(){ x $1 make install ;}
+zon(){ $PKG "${@:2}" ;}
+set -$MODE
+${CMD}on ${PKG} "${@:2}"
+set +$MODE
+
