@@ -2,6 +2,6 @@
 ## git submodules
 ### the repository
 
-`xc` is for cross-compiled toolchains
-`meta` is undefined
-`build` is for temporary build data and related scripts
+- `xc`: cross-compilation tools
+- `meta`: undefined
+- `build`: temporary build data and related scripts
