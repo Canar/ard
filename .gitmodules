@@ -1,0 +1,3 @@
+[submodule "mpfr"]
+	path = mpfr
+	url = https://github.com/Canar/mpfr.git
