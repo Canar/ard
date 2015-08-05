@@ -1,5 +1,0 @@
-host=imladris
-mirror=http://http.debian.net/debian/
-arch=amd64
-#arch="686-pae"
-#core=fglrx-driver

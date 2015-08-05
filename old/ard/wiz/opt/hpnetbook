@@ -1,8 +1,0 @@
-host=hpnetbook
-mirror=http://http.debian.net/debian/
-arch="686-pae"
-. $opt/core
-. $opt/boot
-. $opt/sid
-. $opt/gui
-. $opt/full

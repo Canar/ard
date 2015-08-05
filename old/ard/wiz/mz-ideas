@@ -1,6 +1,0 @@
-ambient mix -> directly mix into output from this point immediately
-
-loop-out -> loop for n seconds, fade out for n seconds
-split -> make split work for byte-aligned files
-chord -> generate chord for key detection
-t-fade -> drops n-decibels at midpoint; x-fade is -3

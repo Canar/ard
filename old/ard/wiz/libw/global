@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-#global variable definitions, even from w scriptlet perspectives
-#wdir defined in ../w
-#ldir defined in libw/base
-pwd=$(pwd)
-nl='
-'
-

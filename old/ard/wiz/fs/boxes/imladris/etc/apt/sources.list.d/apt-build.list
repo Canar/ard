@@ -1,1 +1,0 @@
-deb [trusted=yes arch-=i386] file:/var/cache/apt-build/repository apt-build main

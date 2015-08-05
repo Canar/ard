@@ -1,4 +1,0 @@
-main="debhelper ca-certificates libglib2.0-data debian-keyring keychain bash-completion binfmt-support uuid xml-core rng-tools kpartx gdisk sudo shared-mime-info cscope desktop-base fakeroot file xkb-data lynx btrfs-tools ncurses-term ssh vim-nox xz-utils wpasupplicant swi-prolog-nox lvm2 less html-xml-utils wireless-tools debootstrap man-db info"
-full_dev="autoconf automake autopoint binutils bison build-essential flex g++ gcc gnu-standards libtool make manpages-dev python-minimal"
-media="vlc-nox sox libsox-fmt-all opus-tools alsa-utils youtube-dl mplayer"
-install="$install $main $full_dev $media"

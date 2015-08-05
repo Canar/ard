@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-#variable definitions. global to user, unknown to w.
-now=`epoch`
-

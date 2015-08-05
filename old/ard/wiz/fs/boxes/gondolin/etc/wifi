@@ -1,5 +1,0 @@
-# WPA-PSK/TKIP
-network={
-	ssid="Hithaeglir"
-	psk="ennorath"
-}
