@@ -1,0 +1,9 @@
+[submodule "mpfr"]
+	path = mpfr
+	url = /git/mpfr
+[submodule "meta"]
+	path = meta
+	url = /git/meta
+[submodule "autoconf"]
+	path = autoconf
+	url = /git/autoconf
