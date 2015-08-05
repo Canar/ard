@@ -1,0 +1,19 @@
+
+--without-headers 
+
+--disable-nls --disable-multilib --disable-multiarch 
+
+--enable-libssp --enable-lto --enable-install-libiberty 
+
+--enable-install-libbfd --enable-maintainer-mode --enable-elf-stt-common --enable-parallel-mark --enable-__cxa_atexit --enable-link-mutex 
+
+--with-gnu-as --with-gnu-ld 
+
+--enable-plugins 
+
+--with-curses --with-expat --without-x --disable-gtk
+
+--enable-linux-futex 
+\
+
+--enable-tls --enable-gnu-indirect-function --enable-gnu-unique-object

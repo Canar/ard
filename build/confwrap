@@ -1,0 +1,21 @@
+#!/bin/bash
+NOM=ard
+LIBC=gnu
+SYSROOT=/home/user/build/ard/xc/imladris/glibc
+#LIBC=uclibc
+declare -A conf
+conf[gettext]="--enable-threads=posix "
+conf[gcc]="--enable-languages=c,c++,lto "
+bild=x86_64-debian-linux-gnu
+targ=x86_64-$NOM-linux-$LIBC
+cd /home/user/build/ard/build/$1
+if [ $STEP -eq 1 ] ; then
+../../git/$1/configure CFLAGS="-march=barcelona -O3" --prefix=/usr --target=$targ --build=$bild --host=$bild --with-sysroot=$SYSROOT --disable-nls --disable-multilib --disable-rpath --disable-java ${conf[$1]} "${@:2}"
+elif [ $STEP -eq 2 ] ; then
+make all 
+elif [ $STEP -eq 3 ] ; then
+make install DESTDIR=/home/user/build/ard/xc/imladris/glibc
+elif [ $STEP -eq 4 ] ; then
+make clean 
+fi
+

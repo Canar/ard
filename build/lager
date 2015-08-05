@@ -1,0 +1,6 @@
+#!/bin/bash
+CMD="$( echo "$@" | sed -z 's/\\\n//g' | tee -a /home/user/build/ard/build/log/buildlog )"
+set -x
+( eval "$CMD" ) 2>> /home/user/build/ard/build/log/cmdlog
+set +x 
+
