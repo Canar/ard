@@ -1,3 +1,9 @@
 [submodule "mpfr"]
 	path = mpfr
 	url = https://github.com/Canar/mpfr.git
+[submodule "/git/autoconf"]
+	path = /git/autoconf
+	url = http://git.sv.gnu.org/r/autoconf.git
+[submodule "/git/meta"]
+	path = /git/meta
+	url = https://github.com/Canar/meta.git
