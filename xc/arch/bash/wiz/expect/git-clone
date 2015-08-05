@@ -1,0 +1,11 @@
+#!/usr/bin/expect -f
+set password [lindex $argv 0]
+spawn git clone [lindex $argv 1] [lindex $argv 2]
+expect { 
+	"yes/no" { 
+		send "yes\r" 
+		exp-continue
+	}
+	"*assword:" { send "$password\r" }
+}
+interact

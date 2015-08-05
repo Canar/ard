@@ -1,0 +1,19 @@
+#!/bin/bash
+qmul(){
+	a=$1
+	shift
+	b=$1
+	shift
+	let c="(( $a * $b ))"
+	echo "$c $@"
+}
+qmulf(){ #reads a line, multiplies the first two arguments, and prints the line with the product
+	while read l ; do
+		qmul $l
+		lt=`echo "$l" | cut -b1-80`
+	#	echo $lt 1>&2
+	done
+}
+qml(){
+	per-line l qmul \$l
+}

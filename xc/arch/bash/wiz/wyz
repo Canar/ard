@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+def lufs x
+	10*Math.log10(x)-0.691
+end
+def de_db x
+	10*Math.log10(x/20)
+end
+def db x
+end

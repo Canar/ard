@@ -1,0 +1,18 @@
+[submodule "git"]
+	path = git
+	url = git@github.com:git/git.git
+[submodule "openssh"]
+	path = openssh
+	url = git://anongit.mindrot.org/openssh.git
+[submodule "expat-git"]
+	path = expat-git
+	url = git://git.code.sf.net/p/expat/code_git
+[submodule "vim"]
+	path = vim
+	url = git@github.com:b4winckler/vim.git
+[submodule "bash"]
+	path = bash
+	url = git://git.savannah.gnu.org/bash.git
+[submodule "ruby"]
+	path = ruby
+	url = git@github.com:ruby/ruby.git

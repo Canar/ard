@@ -1,0 +1,8 @@
+etc/skel/.bashrc
+etc/skel/.profile
+etc/skel/.bash_logout
+etc/apt/sources.list.d/dmo.list
+etc/default/locale
+root/.bashrc
+root/.profile
+root/.bash_logout

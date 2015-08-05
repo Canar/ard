@@ -1,0 +1,10 @@
+ - generate cli-case from declarations
+ - generate install scriptlets. eg.
+	- dpkg --add-architecture for steam
+	- git config
+ - finalize install structure ( 4G wiz partition, remaining LVM deb/gnome? )
+ - encrypted password shortcut scheme
+ - pre-install debian prep (apt-get install git, debootstrap, ...)
+ - fix eval clause to properly pass wildcards
+	- problem: w dranntune album dir/*.flac
+ - locale-gen on install to fix gnome-terminal bug

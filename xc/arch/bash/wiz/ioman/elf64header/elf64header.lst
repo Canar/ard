@@ -1,0 +1,76 @@
+     1                                  ; Name:         elf64header
+     2                                  ; Build:        see makefile
+     3                                  ; Description:
+     4                                  ; Small, self-contained 64-bit ELF executable for NASM
+     5                                  ; compile with nasm -f bin -o hello64.bin hello64.nasm
+     6                                  ;
+     7                                  ; Adapted from: http://www.muppetlabs.com/~breadbox/software/tiny/teensy.html
+     8                                  ;
+     9                                  ; http://blog.markloiseau.com/2012/05/tiny-64-bit-elf-executables/
+    10                                  ;
+    11                                  ; Remark: This program is from the internet (see links above), so all credits goes to the writer(s)
+    12                                  
+    13                                  BITS 64
+    14                                          org     0x00400000      ; Program load offset
+    15                                  
+    16                                  ; 64-bit ELF header
+    17                                  ehdr:
+    18                                          ; ELF Magic + 2 (64-bit), 1 (LSB), 1 (ELF ver. 1), 0 (ABI ver.)
+    19 00000000 7F454C4602010100                db 0x7F, "ELF", 2, 1, 1, 0              ; e_ident
+    20 00000008 00<rept>                        times 8 db 0                            ; reserved (zeroes)
+    21                                          
+    22 00000010 0200                            dw 2                    ; e_type:       Executable file
+    23 00000012 3E00                            dw 0x3e                 ; e_machine:    AMD64
+    24 00000014 01000000                        dd 1                    ; e_version:    current version
+    25 00000018 [7800000000000000]              dq _start               ; e_entry:      program entry address (0x78)
+    26 00000020 4000000000000000                dq phdr - $$            ; e_phoff       program header offset (0x40)
+    27 00000028 0000000000000000                dq 0                    ; e_shoff       no section headers
+    28 00000030 00000000                        dd 0                    ; e_flags       no flags
+    29 00000034 4000                            dw ehdrsize             ; e_ehsize:     ELF header size (0x40)
+    30 00000036 3800                            dw phdrsize             ; e_phentsize:  program header size (0x38)
+    31 00000038 0100                            dw 1                    ; e_phnum:      one program header
+    32 0000003A 0000                            dw 0                    ; e_shentsize
+    33 0000003C 0000                            dw 0                    ; e_shnum
+    34 0000003E 0000                            dw 0                    ; e_shstrndx
+    35                                  
+    36                                  
+    37                                  ehdrsize equ $ - ehdr
+    38                                  
+    39                                  ; 64-bit ELF program header
+    40                                  phdr:
+    41 00000040 01000000                        dd 1                    ; p_type:       loadable segment
+    42 00000044 05000000                        dd 5                    ; p_flags       read and execute
+    43 00000048 0000000000000000                dq 0                    ; p_offset
+    44 00000050 [0000000000000000]              dq $$                   ; p_vaddr:      start of the current section
+    45 00000058 [0000000000000000]              dq $$                   ; p_paddr:      
+    46 00000060 AD00000000000000                dq filesize             ; p_filesz
+    47 00000068 AD00000000000000                dq filesize             ; p_memsz
+    48 00000070 0000200000000000                dq 0x200000             ; p_align:      2^11=200000=11 bit boundaries
+    49                                  
+    50                                  ; program header size
+    51                                  phdrsize equ $ - phdr
+    52                                  
+    53                                  ; Hello World!/your program here
+    54                                  _start:
+    55                                          ; sys_write(stdout, message, length)
+    56                                          
+    57 00000078 B801000000                      mov     rax, 1          ; sys_write
+    58 0000007D BF01000000                      mov     rdi, 1          ; stdout
+    59 00000082 48BE-                           mov     rsi, message    ; message address
+    60 00000084 [9F00000000000000] 
+    61 0000008C BA0E000000                      mov     rdx, length     ; message string length
+    62 00000091 0F05                            syscall
+    63                                  
+    64                                          ; sys_exit(return_code)
+    65                                          
+    66 00000093 B83C000000                      mov     rax, 60         ; sys_exit
+    67 00000098 BF00000000                      mov     rdi, 0          ; return 0 (success)
+    68 0000009D 0F05                            syscall
+    69                                  
+    70                                          message:
+    71 0000009F 48656C6C6F2C20776F-                     db 'Hello, world!',0x0A         ; message and newline
+    72 000000A8 726C64210A         
+    73                                          length: equ     $-message               ; message length calculation
+    74                                  
+    75                                  ; File size calculation
+    76                                  filesize equ $ - $$

@@ -1,0 +1,4 @@
+#depends on arch, localhost
+core="$core firmware-linux firmware-realtek firmware-ralink intel-microcode adduser dialog deb-multimedia-keyring git lvm2 expect"
+base="console-setup less ssh swi-prolog-nox vim-nox wireless-tools wpasupplicant kpartx gdisk debootstrap sudo alsa-base btrfs-tools html-xml-utils lynx file ncurses-term thin-provisioning-tools uuid netbase apt-utils isc-dhcp-client man-db"
+install="$core $base"

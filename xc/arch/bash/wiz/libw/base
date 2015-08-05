@@ -1,0 +1,232 @@
+#!/bin/bash
+ldir=$wdir/libw
+epoch(){
+	date '+%s'
+}
+pause(){
+	echo "Please press enter to continue."
+	read -e temp
+}
+from(){
+	f=$1
+	shift
+	eval $@ < $1
+}
+per-line(){ #per-line l reads a line into the variable l then executes $2
+	lv=$1
+	shift
+	c=$@
+	while read $lv ; do
+		eval $c
+	done
+}
+epoch-time(){
+	date '+%s'
+}
+handle(){
+	$1
+	if [[ $? -ne 0 ]] ; then
+		$2
+	fi
+	$3
+}
+dont-clobber(){
+	if [[ -f "$1" ]] ; then
+		if [[ ! -f "$1.$now" ]] ; then 
+			cp "$1" "$1.$now"
+		fi
+		#rm "$1"
+	fi
+}
+process-param-from-var-into-file-via-stdio(){ #executes $1, passing the value in $2 to stdin, and saving stdout to file $3
+	dont-clobber "$3"
+	( $1 <<< "$2" ) > "$3"
+}
+process(){ #unwraps process to execute from quotes, and executes it. permits all other variables to be quoted without loss of generality
+	process="$1"
+	shift
+	$process "$@"
+}
+process-file-inplace(){
+	dont-clobber "$2"
+	process "$@"
+}
+write-param-to-file(){
+	dont-clobber "$2"
+	process-stdio cat "$1" > "$2"
+}
+times(){
+	ct=$1
+	shift
+	i=0
+	while [[ $ct -gt $i ]] ; do
+		let i="(( $i + 1 ))"
+		eval "$@"
+	done
+}
+each(){
+	if [[ -n $2 ]] ; then
+		$1 $2
+		each "$1" "${@:3}"
+	fi
+}
+fullstop(){
+	each '.' "$@"
+}
+include(){
+	. "$ldir/$1"
+}
+inclopt(){
+	. "$wdir/opt/$1"
+}
+punt(){
+	eval "$@" >& /dev/null
+}
+tmp(){
+	tmp="/run/wiz/tmp.$$.tmp"
+	cmd="$1"
+	shift
+	eval "$cmd" "$tmp" "$@"
+	rm $tmp
+}
+log-params(){
+	ept=`epoch`
+	eval 'echo "[ @ $ept ] $@"' >> log
+	"$@"
+}
+log(){ log-params "$@" ; }
+insert-param-after-param-in-file-to-file(){
+	sed -r 's/('"$2"')/\1'"$1"'/g' "$3" > "$4"
+}
+split-first-line-of-file-to-file(){
+	dont-clobber "$2"
+	dont-clobber "$1"
+	dont-clobber "$3"
+	head -1 <"$1" >"$2"
+	if [[ -n "$3" ]] ; then
+		tail -n +2 "$1" >"$3"
+	fi
+}
+split-file-after-param-to-file-and-file(){
+	tmp="$1.tmp"
+	insert-param-after-param-in-file-to-file "\n" "$2" "$1" "$tmp"
+	split-first-line-of-file-to-file "$tmp" "$3" "$4"
+#	rm -f "$tmp"
+}
+sshvars(){
+	sshdport=23
+	proxy=user@ennorath.ca
+	xenv=/system/xbin/env
+	xchroot=/system/xbin/chroot
+	xsshd=/system/bin/sshd
+	xssh=/system/bin/ssh
+	xmount=/system/bin/mount
+	pthis="$( cd "$( echo "${BASH_SOURCE[0]%/*}" )" && pwd )"
+	fthis=$0
+	xthis=$pthis/$fthis
+	pchroot=/mnt/deb-armel
+	xcbash=/bin/bash
+}
+start-sshd(){
+	$xsshd -de -p $sshdport 
+}
+start-tunnel(){
+	$xssh -fNR 0:localhost:$sshdport $proxy >& link
+}
+bind-mount(){
+	$xmount -o bind $1 $2/$1
+}
+ensure-mount(){
+	if ( $xmount | grep -q $2/$1 ) ; then
+		echo "$1 already mounted."
+	else
+		bind-mount $1 $2
+	fi
+}
+enter-chroot-noenv(){
+	ensure-mount /dev $pchroot
+	cp $xthis $pchroot/$fthis
+	$xenv - $xchroot $pchroot $xcbash /$fthis prepare-chroot-env
+	umount $pchroot/dev
+}
+prepare-chroot-env(){
+	export TERM=xterm
+	export PATH=$PATH
+	export HOME=/root
+	mount -t proc none /proc
+	mount -t sysfs none /sys
+	mount -t devpts none /dev/pts
+	bash -l
+	umount /proc
+	umount /sys
+	umount /dev/pts
+}
+show-path(){
+	echo "$fthis"
+	echo "$pthis"
+	echo "$xthis"
+}
+get-svn-repo-from-url-to-empty-dir(){
+	svn checkout "$1" "$2"	
+}
+process-repeat-params(){
+	while true ; do eval "$@" ; done
+}
+process-repeat-after-n-seconds-params(){
+	wait=$1
+	shift
+	process-repeat-params "$@ ; sleep $wait"
+}
+tty-home(){
+	echo -ne "\E[H"
+}
+ttylinebreak(){
+	len="`wc -c <<< $@`"
+	cols="`tput cols`"
+	let reps="(( $cols / ( $len ) ))"
+	times $reps "echo -n '$@'"
+}
+emit(){
+	str="$@"
+	echo -n "$str"
+}
+len(){
+	str="$@"
+	len=$(emit "$str" | wc -c)
+}
+restore(){
+	match="$1"
+	len=$(len $match)
+}
+pop(){
+	"$1"="$2"
+	shift
+	shift
+	params="$@"
+}
+inline(){
+	cmd=$1
+	[ $cmd = "$@" ] || exit
+}
+
+load-into-new-array(){
+	name="$1"
+	shift
+	[ x"$1" =  x ] && return
+	key="$1"
+	shift
+}
+get-from(){
+	f="$1"
+	shift
+	#per-line-of-file "$f" 'l wget "\$l"'
+	cat "$f" | per-line l wget "\$l"
+}
+get-links-from(){
+	f="$1"
+	shift
+	( cat "$f" | per-line l "wget \$l -O - | hxwls -b \$l" ) | sort | uniq
+}
+per-line-of-file(){
+	cat "$1" | per-line l "$2" '\"\$l\"'
+}

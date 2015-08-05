@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+spawn adduser [lindex $argv 0]
+set password [lindex $argv 1]
+expect "password:"
+send "$password\r"
+expect "password:"
+send "$password\r"
+send "\r\r\r\r\r\r"
+expect eof

@@ -1,0 +1,38 @@
+#!/usr/bin/swipl -s
+%:- use_module(library(http/http_client)).
+
+c(List,Separator,Atom):-atomic_list_concat(List,Separator,Atom).
+
+%list printer
+p([[H]|T]):-p(H),p(T).
+p([H|T]):-p(H),p(T).
+p([]):-nl.
+p(P):-print(P).
+
+%list line printer
+pl([]).
+pl([H|T]):-print(H),nl,pl(T).
+
+%execute command
+x(Cmd):-shell(Cmd,Status),exitcode(Cmd,Status).
+x(Bin,Args):-c([Bin|Args],' ',Cmd),x(Cmd).
+
+%handle exit codes
+exitcode(Cmd,0):-p([Cmd,' completed successfully.']).
+exitcode(Cmd,Status):-p([Cmd,' returned ',Status]).
+
+args(Args):-current_prolog_flag(os_argv,Oargs),
+	Oargs=[Impl,Flags,Bin|Args],
+	assertz(prolog_implementation(Impl)),
+	assertz(prolog_flags(Flags)),
+	assertz(bin(Bin)).
+
+ps([H|T],Y):-c(H,' ',T),ps(T,Y).
+ps([],[]).
+
+lash([execute|CmdL]):-c(CmdL,' ',CmdA),x(CmdA).
+lash(Args):-p(Args),!,lash([execute|Args]).
+
+lash:-args(Args),lash(Args),c(Args,',',P),p(P),halt.
+
+:-lash.

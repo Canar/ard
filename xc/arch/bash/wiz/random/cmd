@@ -1,0 +1,2 @@
+find | tee cat | grep '\.mp4$' | sort -R | tee pl 
+mplayer -framedrop -nosound -playlist pl

@@ -1,0 +1,11 @@
+using(L):-L=[_|_],maplist(using,L),!.
+using(Library):-consult(library(Library)).
+goal:-print(goal),nl.
+prepare
+:- asserta(library_directory('/usr/local/src/wiz'))
+ , using([swi,base,event,web])
+%, using([listtree,web,parsing,'install.pro',dev_kbd,misc,terminal])
+.
+:- prepare
+ , get(process)
+ , halt.

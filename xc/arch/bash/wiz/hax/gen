@@ -1,0 +1,130 @@
+#!/bin/bash
+
+gnulibstrap(){
+	rm -rf $S/$1/{.git,gnulib}
+	ln -s $GIT/$1/.git $S/$1
+	ln -s $GIT/gnulib/ $S/$1
+}
+prep(){
+	rm -rf {$B,$S}/$1
+	mkdir {$B,$S}/$1
+	cp -sr $GIT/$1 $S
+	cd $S/$1
+}
+
+full(){
+	rm -rf temp $BUILD
+	mkdir $BUILD
+	mkdir $bGCC
+	mkdir -p $tGCC
+	cp -s $GIT/gcc/* $tGCC
+	cp -s $GIT/binutils-gdb/* $tGCC
+	ln -s $UP/hg/gmp $tGCC/gmp
+	ln -s $UP/svn/mpfr-3.1 $tGCC/mpfr
+	ln -s $GIT/mpc $tGCC/mpc
+	ln -s $GIT/cloog $tGCC/cloog
+	ln -s $GIT/isl $tGCC/isl
+	mkdir $bGCC
+	cd $bGCC
+	$tGCC/$CONF --enable-languages=c,c++ --with-cpu=k8 --disable-bootstrap --disable-multilib --disable-shared --disable-nls
+	ln -s $GIT/glibc $BUILD/glibc
+	CONF="$CONF CC=/strap/bin/gcc CXX=/strap/bin/g++ CPP=/strap/bin/cpp"
+	$BUILD/glibc/$CONF --enable-kernel=4.0.0 --with-headers=/src/native/linux-headers/include/ --with-binutils=/strap/bin --disable-nls --disable-profile --disable-multi-arch --disable-addons --without-selinux
+}
+pkgrec(){
+	echo $1[$2]="${@:3}" >> $G/pkglib
+}
+arbcom(){
+	pushd .
+	cd $S/$2
+	pkgrec "$@"
+	"${@:3}"
+	popd
+}
+pcom(){ prep "$@"; ls ;}
+icom(){ arbcom init "$@" ;}
+gcom(){ arbcom gen "$@" ;}
+ccom(){ arbcom conf $1 $S/$1/$CONFp "${@:2}" ;}
+mcom(){ arbcom make $1 make ;}
+ncom(){ arbcom install $1 make install ;}
+
+D=`pwd`
+R=/src
+G=$R/gen
+B=$G/bin
+S=$G/src
+UP=$R/upstream
+GIT=$UP/git
+sGCC=$GIT/gcc
+BUILD=$D/build
+tGCC=$D/temp/gcc-binutils-tree
+bsGCC=$SRC/gcc
+bGCC=$BUILD/gcc
+PREFIX=/strap
+CONFp="configure --prefix=$PREFIX"
+#CONFx="$CONF CC=/strap/bin/gcc CXX=/strap/bin/g++ CPP=/strap/bin/cpp"
+INC=$PREFIX/include
+LIB=$PREFIX/lib
+LDINC="LDFLAGS='-L$LIB'"
+CFINC="CFLAGS='-I$INC'"
+CXINC="CXXFLAGS='-I$INC'"
+ALLINC="$CFINC $CXINC $LDINC"
+xNLS="--disable-nls"
+CONF="configure --prefix=/strap"
+CONFl="$CONF --disable-nls"
+ORDER="attr acl coreutils diffutils grep patch bash"
+
+declare -A vcs init gen repo conf build install make dep
+g(){ 
+#	echo "$1[$2]='$3'"
+	eval "$1[$2]='$3'"
+}
+h(){ 
+	[ -z "$3" ] && return
+#	echo "h $@"
+	 g "$1" "$3" "$2"
+	 h "$1" "$2" "${@:4}"
+}
+
+h conf "$CONFl" bash texinfo
+h conf "$CONF" default autoconf automake grep groff ncurses sed attr acl cloog
+conf[acl]="${conf[acl]} `eval echo $ALLINC`"
+conf[bash]="${conf[bash]} --without-bash-malloc"
+conf[ncurses]="${conf[ncurses]} --with-shared --without-debug --enable-pc-files --enable-widec --with-pkg-config-libdir=/strap/lib/x86_64-linux-gnu/pkgconfig"
+conf[sed]="${conf[sed]} CFLAGS=-Wno-error"
+
+dep[acl]=attr
+
+gen[bash]=''
+gen[autoconf]='autoreconf -fvi'
+gen[make]='make update'
+h gen ./autogen.sh acl attr gettext texinfo cloog isl
+h gen ./bootstrap default patch coreutils diffutils
+
+init[make]='autoreconf -i'
+for p in coreutils gettext grep groff sed ; do init[$p]="gnulibstrap $p" ; done
+
+install[default]='make install'
+make[default]=make
+vcs[default]=git
+
+CMD=${1:0:1}
+PKG=${1:1}
+D=$S/$PKG
+o(){ X=$(echo "\${$1[$2]}") ; eval echo $X ;}
+w(){ pushd . ; cd "$1" ; echo "Executing ${@:2} in $1..." ; "${@:2}" ; popd ;}
+d(){ eval echo "\${$1[$2]- \${$1[default]}}" ;}
+u(){ w "$D" $(d $2 $1) ;}
+#don(){ d $PKG "${@:2}" ;}
+pon(){ prep $1; $2;}
+bon(){ for f in p i g c m n;do ${f}on "$@";done;}
+con(){ $D/$(d conf $1) "${@:2}" ;}
+gon(){ u $1 gen ;}
+ion(){ I="$(d init $1)" ; if [ -n "$I" ] ; then w "$D" $I ; fi ;}
+mon(){ u $1 make ;}
+non(){ u $1 install ;}
+MODE=e
+set -$MODE
+${1:0:1}on ${1:1} "${@:2}"
+set +$MODE
+
